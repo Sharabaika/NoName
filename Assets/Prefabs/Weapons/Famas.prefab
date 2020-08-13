@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5848006725584433482}
-  - component: {fileID: 5848006725584433481}
+  - component: {fileID: 8806157992511368070}
   m_Layer: 0
   m_Name: Famas
   m_TagString: Untagged
@@ -37,7 +37,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5848006725584433481
+--- !u!114 &8806157992511368070
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -46,14 +46,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 5848006725584433483}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c1a06f0bd76a4148bc14242f8fed57bb, type: 3}
+  m_Script: {fileID: 11500000, guid: f5ab2048c3f54d0088be6d3ce7b92a36, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cooldowns:
-  - 1
-  - 1
+  cooldown: 0.5
+  abilityCooldown: 1
+  projectile: {fileID: 3794857919554359378, guid: 9cf4513825d38054bb3660ad488dea5a, type: 3}
   muzzle: {fileID: 4712688611189498983}
-  bulletPrefab: {fileID: 3794857919554359378, guid: 9cf4513825d38054bb3660ad488dea5a, type: 3}
+  coneRadius: 1
+  coneHeight: 1
+  magazineCapacity: 25
+  burstRateOfFire: 0.3
+  burstCount: 3
 --- !u!1 &5848006725783169999
 GameObject:
   m_ObjectHideFlags: 0

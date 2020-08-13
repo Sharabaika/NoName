@@ -1,77 +1,71 @@
 ﻿using System;
+using System.Collections;
+using Projectiles;
 using UnityEditor;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace Weapons
 {
-    // TODO remove secondaryAttack  
     public abstract class Weapon : MonoBehaviour
     {
-        // TODO serialize like separate values MainCooldown and SecondaryCooldown
-        // TODO rework)0
-        [SerializeField]protected float[] cooldowns = new float[]{1f,1f};
-
+        [SerializeField] protected float cooldown = 1f;
+        [SerializeField] protected float abilityCooldown = 1f;
+        
+        [SerializeField] protected Projectile projectile;
         [SerializeField] protected Transform muzzle;
 
-        [SerializeField, Range(0f, 2f)] protected float ConeRadius = 1f;
-        [SerializeField, Range(0f, 2f)] protected float ConeHeight = 1f;
+        [SerializeField, Range(0f, 2f)] protected float coneRadius = 1f;
+        [SerializeField, Range(0f, 2f)] protected float coneHeight = 1f;
 
+        [SerializeField] protected int magazineCapacity = 25;
+        protected int remainingAmmo;
 
-        public void TryFireMain() => TryFire(0);
-        public void TryFireSecondary() => TryFire(1);
+        public virtual void PullMainTrigger(){}
 
-        public float RemainingMainCooldown =>GetRemainingCooldown(0);
-        public float RemainingSecondaryCooldown => GetRemainingCooldown(1);
+        public virtual void ReleaseMainTrigger(){}
 
-        // TODO add automatic/single modes, use GetKeyDown/GetKey 
+        public virtual void PullSecondaryTrigger(){}
 
-        private float[] lastFired = new[] {float.MinValue, float.MinValue};
+        public virtual void ReleaseSecondaryTrigger(){}
 
-        private float GetRemainingCooldown(int mode)
+        public virtual void Reload()
         {
-            // if(mode<0 || mode>1) throw new ArgumentOutOfRangeException();
-            return Mathf.Max(0, lastFired[mode] + cooldowns[mode] - Time.time);
+            remainingAmmo = magazineCapacity;
         }
 
-        protected abstract void FireMain();
-        protected abstract void FireSecondary();    
+        public virtual bool CanShoot()
+        {
+            return remainingAmmo > 0 && RemainingCooldown < 0f;
+        }
+
+        public virtual bool CanUseAbility()
+        {
+            return true;
+        }
+        public float RemainingCooldown => lastFired + cooldown - Time.time;
+        public float RemainingAbilityCooldown => lastAbilityUse + abilityCooldown - Time.time;
+
+        protected float lastFired = float.NegativeInfinity;
+        protected float lastAbilityUse = float.NegativeInfinity;
+
+        protected void WasteAmmo(int amount=1)
+        {
+            remainingAmmo = Mathf.Max(0, remainingAmmo - amount);
+        }
         
-        private void TryFire(int mode)
+        protected virtual Projectile ShootProjectile(Projectile projectileToShoot,Transform muzzleTransform)
         {
-            if (GetRemainingCooldown(mode) <= float.Epsilon )
-            {
-                FireMode(mode);
-            }
-            else
-            {
-                // TODO cant fire
-            }
-        }
-
-        private void FireMode(int mode)
-        {
-            // TODO add fire effects
-            
-            lastFired[mode] = Time.time;
-            // TODO seems not good
-            switch (mode)
-            {
-                case 0:
-                    FireMain();
-                    return;
-                case 1:
-                    FireSecondary();
-                    return;
-                default:
-                    return;
-            }
+            lastFired = Time.time;
+            // TODO mb just rotate by random Euler angle 
+            return Instantiate(projectileToShoot, muzzleTransform.position,
+                Quaternion.FromToRotation(muzzleTransform.forward, RandomDirectionToConeBase()) * muzzleTransform.rotation);
         }
 
         protected Vector3 RandomDirectionToConeBase()
         {
-            var baseVector = Random.insideUnitCircle * ConeRadius;
-            var pointPos = muzzle.forward * ConeHeight + muzzle.up * baseVector.y + muzzle.right * baseVector.x;
+            var baseVector = Random.insideUnitCircle * coneRadius;
+            var pointPos = muzzle.forward * coneHeight + muzzle.up * baseVector.y + muzzle.right * baseVector.x;
             return pointPos.normalized;
         }
         
@@ -80,14 +74,23 @@ namespace Weapons
         {
             if (muzzle != null)
             {
-                var coneBase = muzzle.position + muzzle.forward * ConeHeight;
-                Handles.DrawWireDisc(coneBase, muzzle.forward, ConeRadius);
-                Handles.DrawLine(coneBase + muzzle.up * ConeRadius, muzzle.position);
-                Handles.DrawLine(coneBase + muzzle.up * (-ConeRadius), muzzle.position);
-                Handles.DrawLine(coneBase + muzzle.right * ConeRadius, muzzle.position);
-                Handles.DrawLine(coneBase + muzzle.right * (-ConeRadius), muzzle.position);
+                var coneBase = muzzle.position + muzzle.forward * coneHeight;
+                Handles.DrawWireDisc(coneBase, muzzle.forward, coneRadius);
+                Handles.DrawLine(coneBase + muzzle.up * coneRadius, muzzle.position);
+                Handles.DrawLine(coneBase + muzzle.up * (-coneRadius), muzzle.position);
+                Handles.DrawLine(coneBase + muzzle.right * coneRadius, muzzle.position);
+                Handles.DrawLine(coneBase + muzzle.right * (-coneRadius), muzzle.position);
             }
         }
 #endif
+
+        #region MonobehaviorEvents
+
+        protected virtual void Awake()
+        {
+            remainingAmmo = magazineCapacity;
+        }
+
+        #endregion
     }
 }
