@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Weapons.Automatics
 {
-    public class Famas : AutomaticWeapon
+    public class BurstingAutomaticWeapon : AutomaticWeapon
     {
         [SerializeField] private float burstRateOfFire = 0.3f;
         [SerializeField] private int burstCount = 3;
