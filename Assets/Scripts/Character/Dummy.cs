@@ -5,6 +5,9 @@ using Random = UnityEngine.Random;
 
 namespace Character
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class Dummy : MonoBehaviour, IDamageable
     {
         public event Action<int> OnTakeDamage;

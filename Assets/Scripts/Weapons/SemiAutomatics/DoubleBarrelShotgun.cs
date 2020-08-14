@@ -2,7 +2,7 @@
 
 namespace Weapons.SemiAutomatics
 {
-    // TODO rework aditor
+    // TODO rework editor
     public class DoubleBarrelShotgun: Shotgun
     {
         [SerializeField] protected Transform secondMuzzle;

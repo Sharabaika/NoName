@@ -9,24 +9,32 @@ namespace Weapons.Automatics
         [SerializeField] private int burstCount = 3;
         public float RemainingBurstShootingCooldown => lastFired + burstRateOfFire - Time.time;
 
-        protected IEnumerator current;
+        private bool _isBursting = false;
         
         public override void PullMainTrigger()
         {
-            current = AutomaticFire();
-            StartCoroutine(current);
+            if (_isBursting == false)
+            {
+                shootingCoroutine = StartCoroutine(AutomaticFire());
+            }
         }
 
         public override void ReleaseMainTrigger()
         {
-            StopCoroutine(current);
+            if (_isBursting == false && shootingCoroutine != null)
+            {
+                StopCoroutine(shootingCoroutine);
+            }
         }
 
         public override void PullSecondaryTrigger()
         {
-            if (CanUseAbility())
+            if (CanUseAbility() && _isBursting==false)
             {
-                StopCoroutine(shootingCoroutine);
+                if (shootingCoroutine != null)
+                {
+                    StopCoroutine(shootingCoroutine);
+                }
                 shootingCoroutine = StartCoroutine(BurstShooting(burstCount));
             }
         }
@@ -34,6 +42,7 @@ namespace Weapons.Automatics
 
         private IEnumerator BurstShooting(int count)
         {
+            _isBursting = true;
             lastAbilityUse = Time.time;
             for (int i = 0; i < count && remainingAmmo > 0; i++)
             {
@@ -41,6 +50,8 @@ namespace Weapons.Automatics
                 WasteAmmo();
                 var newProjectile = ShootProjectile(projectile, muzzle);
             }
+
+            _isBursting = false;
         }
     }
 }
