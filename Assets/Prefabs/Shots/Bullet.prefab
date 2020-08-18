@@ -109,11 +109,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 54c2539e7b0f4d228d7b919247085e2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  data: {fileID: 11400000, guid: 73fa97f6906977c479dae1bce850041c, type: 2}
+  data: {fileID: 11400000, guid: 830a7ca1d1fa71844a272feeaec9bb15, type: 2}
   collisionMask:
     serializedVersion: 2
     m_Bits: 768
-  lifeSpan: 1
+  lifeSpan: 5
 --- !u!1 &4909761951746226595
 GameObject:
   m_ObjectHideFlags: 0

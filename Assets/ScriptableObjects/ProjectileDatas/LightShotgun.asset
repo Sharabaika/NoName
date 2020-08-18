@@ -10,8 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2501ee14190e478997f7d828cc267cba, type: 3}
-  m_Name: SmallGravity
+  m_Name: LightShotgun
   m_EditorClassIdentifier: 
-  StartingSpeed: 50
-  GravityAcceleration: 0.01
-  Damage: 1
+  startingSpeed: 50
+  gravityAcceleration: 0
+  isGravityAffected: 0
+  startingDamage: 3
+  damageFallDist: 0
+  minDamage: 1
+  minDamageDist: 10

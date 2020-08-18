@@ -8,46 +8,54 @@ namespace Projectiles
     {
         [SerializeField] protected ProjectileData data;
         [SerializeField] protected LayerMask collisionMask;
-        [SerializeField] protected float lifeSpan = 1f;
+        [SerializeField] protected float lifeSpan = 5f;
+
+        public ProjectileData ProjectileData
+        {
+            set => data = value;
+            get => data;
+        }
+        
+        protected virtual int Damage => 1;
         
         protected Vector3 velocity;
         protected float speed;
-
+        protected float distTraveled = 0f;
+        
         private void Awake()
         {
-            speed = data.StartingSpeed;
-            velocity = Vector3.forward*speed;
+            speed = data.startingSpeed;
+            velocity = transform.forward*speed;
             Destroy(gameObject,lifeSpan);
         }
 
 
-        private void FixedUpdate()
-        {
-            Move(Time.fixedDeltaTime);
-        }
-
         private void Update()
         {
-            if (CheckCollisionsInfront(speed*Time.deltaTime*5f, out var hit))
+            if (CheckCollisionsInfront(speed*Time.deltaTime, out var hit))
             {
-                var damagable = hit.collider.gameObject.GetComponent<IDamageable>();
-                if (damagable != null)
+                var damageable = hit.collider.gameObject.GetComponent<IDamageable>();
+                if (damageable != null)
                 {
-                    damagable.TakeHit(data.Damage,hit.point,transform.forward);
+                    damageable.TakeHit(Damage,hit.point,transform.forward);
                 }
                 Destroy(gameObject);
+                return;
             }
+
+            Move(Time.deltaTime);
         }
 
         private void OnDrawGizmos()
         {
-            Gizmos.DrawRay(new Ray(transform.position,transform.forward));
+            Gizmos.DrawRay(new Ray(transform.position,velocity));
         }
 
         protected virtual void Move(float deltaTime)
         {
-            transform.Translate(velocity*deltaTime);
-            velocity += Vector3.down * (data.GravityAcceleration * deltaTime);
+            distTraveled += speed * deltaTime;
+            transform.Translate(velocity*deltaTime, Space.World);
+            velocity += Vector3.down * (data.gravityAcceleration * deltaTime);
             speed = velocity.magnitude;
         }
 
@@ -57,7 +65,7 @@ namespace Projectiles
 
         protected bool CheckCollisionsInfront(float dist, out RaycastHit hit)
         {
-            Ray ray = new Ray(transform.position,transform.forward);
+            Ray ray = new Ray(transform.position,velocity);
             return Physics.Raycast(ray, out hit, dist);
         }
     }
