@@ -1,26 +1,32 @@
-﻿namespace Player.States
+﻿using Player;
+using Player.States;
+using UnityEngine;
+
+namespace Character.CharacterMovement.States
 {
     public class Falling : State
     {
+        private Vector3 _velocity;
+        
         public Falling(StateMachine machine) : base(machine)
         {
-            IsGroundedState = false;
-            IsMovingState = true;
             Type = Types.Falling;
+            _velocity = Vector3.zero;
+        }
+        
+        public Falling(StateMachine machine, Vector3 velocity) : base(machine)
+        {
+            Type = Types.Falling;
+            _velocity = velocity;
         }
         
         public override void HandleInput()
         {
             base.HandleInput();
-            Movement.AddRelativeForce(Movement.input*Movement.Stats.FallingControllability);
-        }
-
-        public override void Enter()
-        {
-        }
-
-        public override void Leave()
-        {
+            
+            Movement.Controller.Move((Movement.Transform.rotation *machine.movement.input * Movement.Stats.FallingControllability + _velocity) *
+                                     Time.deltaTime);
+            _velocity += Physics.gravity * Time.deltaTime;
         }
 
         public override void OnLanding()

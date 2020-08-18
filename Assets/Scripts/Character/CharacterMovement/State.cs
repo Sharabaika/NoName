@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Character.CharacterMovement.States;
 using UnityEngine;
 using UnityEngine.XR;
 using Debug = UnityEngine.Debug;
@@ -15,11 +16,10 @@ namespace Player
             Walking,
             Running,
             Jumping,
-            Falling
+            Falling,
+            Sliding
         }
-
-        public readonly float speed = 10f;
-
+        
         protected readonly StateMachine machine;
 
         public virtual void HandleInput()
@@ -28,9 +28,6 @@ namespace Player
 
         public Types Type { get; protected set; }
         
-        public bool IsMovingState{ get; protected set; }
-        
-        public bool IsGroundedState{ get; protected set; }
         
         protected PlayerMovement Movement => machine.movement;
         
@@ -39,12 +36,11 @@ namespace Player
             this.machine = machine;
         }
 
-        // TODO call from StateMachine class
         #region Logics
 
-        public abstract void Enter();
+        public virtual void Enter(){}
         
-        public abstract void Leave();
+        public virtual void Leave(){}
 
 
         public virtual void OnTryToJump()
@@ -55,6 +51,11 @@ namespace Player
         {
         }
 
+        public virtual void OnStartSliding()
+        {
+            machine.ChangeState(new Sliding(machine));
+        }
+        
         public virtual void OnLanding()
         {
         }

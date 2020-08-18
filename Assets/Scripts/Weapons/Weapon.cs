@@ -2,6 +2,8 @@
 using System.Collections;
 using Projectiles;
 using UnityEditor;
+using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.UIElements;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -21,6 +23,8 @@ namespace Weapons
         [SerializeField] protected int magazineCapacity = 25;
         protected int remainingAmmo;
 
+        [SerializeField] protected ProjectileData projectileData;
+        
         public virtual void PullMainTrigger(){}
 
         public virtual void ReleaseMainTrigger(){}
@@ -58,8 +62,10 @@ namespace Weapons
         {
             lastFired = Time.time;
             // TODO mb just rotate by random Euler angle 
-            return Instantiate(projectileToShoot, muzzleTransform.position,
+            var proj = Instantiate(projectileToShoot, muzzleTransform.position,
                 Quaternion.FromToRotation(muzzleTransform.forward, RandomDirectionToConeBase()) * muzzleTransform.rotation);
+            proj.ProjectileData = projectileData;
+            return proj;
         }
 
         protected Vector3 RandomDirectionToConeBase()
@@ -82,6 +88,11 @@ namespace Weapons
                 Handles.DrawLine(coneBase + muzzle.right * (-coneRadius), muzzle.position);
             }
         }
+
+        private void OnDrawGizmos()
+        {
+            Gizmos.DrawRay(muzzle.position,muzzle.forward);
+        }
 #endif
 
         #region MonobehaviorEvents
@@ -89,6 +100,7 @@ namespace Weapons
         protected virtual void Awake()
         {
             remainingAmmo = magazineCapacity;
+            projectile.ProjectileData = projectileData;
         }
 
         #endregion

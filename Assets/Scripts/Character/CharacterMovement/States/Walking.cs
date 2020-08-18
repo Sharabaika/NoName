@@ -1,4 +1,5 @@
 ﻿using System.Security;
+using Character.CharacterMovement.States;
 using UnityEngine;
 using UnityEngine.XR;
 
@@ -9,8 +10,6 @@ namespace Player.States
         
         public Walking(StateMachine machine) : base(machine)
         {
-            IsGroundedState = true;
-            IsMovingState = true;
             Type = Types.Walking;
         }
         
@@ -35,23 +34,15 @@ namespace Player.States
                 return;
             }
 
-            Movement.SetSimpleLocalVelocity(Movement.input * Movement.Stats.WalkSpeed);
-        }
-
-        public override void Enter()
-        {
-            // animator
-        }
-
-        public override void Leave()
-        {
-            // dunno 
+            var slopeForce = Movement.SlopeForce();
+            Movement.Controller.SimpleMove(Movement.Transform.rotation * Movement.input * Movement.Stats.WalkSpeed + slopeForce);
         }
 
         public override void OnLooseGround()
         {
             base.OnLooseGround();
-            machine.ChangeState(new Falling(machine));
+            machine.ChangeState(new Falling(machine,
+                Movement.Transform.rotation * Movement.input * Movement.Stats.WalkSpeed));
         }
 
         public override void OnStopMoving()
@@ -69,7 +60,8 @@ namespace Player.States
         public override void OnTryToJump()
         {
             base.OnTryToJump();
-            machine.ChangeState(new Jumping(machine));
+            machine.ChangeState(new Jumping(machine,
+                Movement.Transform.rotation * Movement.input * Movement.Stats.WalkSpeed));
         }
     }
 }

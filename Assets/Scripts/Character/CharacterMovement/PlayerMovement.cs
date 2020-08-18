@@ -1,100 +1,115 @@
 ﻿using System;
 using System.Linq;
+using Character.CharacterMovement.States;
+using Cinemachine.Utility;
 using UnityEngine;
 using UnityEngine.XR;
+using Weapons;
 
 namespace Player
 {
-    // TODO move control methods to separate CharacterMovement class
-    // TODO mb 10g is to much
     public class PlayerMovement : MonoBehaviour
     {
         [SerializeField] private float maxSlope = 45f;
         [SerializeField] public CharacterMovementStats Stats;
-        
-        private CharacterController _controller;
+        [SerializeField] private LayerMask whatIsFloor;
+        [SerializeField] private float slopeForce = 100f;
+        [SerializeField, Range(0,2)] private float slidingForceMultiplier=0.25f;
+
+
         private StateMachine _stateMachine;
-        private Rigidbody _rigidBody;
         private Transform _cameraTransform;
+        private WeaponController _weaponController;
         public State CurrentState =>  _stateMachine?.State;
 
-        public Vector3 Velocity
-        {
-            get => _rigidBody.velocity;
-            set => _rigidBody.velocity = value;
-        }
+        public new Transform Transform { get; private set; }
+        public CharacterController Controller { get; private set; }
 
-        public Vector3 LocalVelocity
-        {
-            get =>transform.InverseTransformDirection(_rigidBody.velocity);
-            set =>_rigidBody.velocity = transform.TransformDirection(value);
-        }
+        public bool IsGrounded => IsOnSurface && GroundIsWalkable;
+        public bool IsOnSurface { get; private set; }
+        public bool GroundIsWalkable{ get; private set; }
 
-        /// <summary>
-        /// ignores Y component
-        /// </summary>
-        public void SetSimpleLocalVelocity(Vector3 v)
-        {
-            var velocity = new Vector3(v.x,LocalVelocity.y,v.z);
-            LocalVelocity = velocity;
-        }
-
-        public void AddForce(Vector3 force, ForceMode mode = ForceMode.Force) => _rigidBody.AddForce(force, mode);
-        public void AddRelativeForce(Vector3 force, ForceMode mode = ForceMode.Force) => _rigidBody.AddRelativeForce(force, mode);
         public float xInput =>Input.GetAxis("Horizontal");
         public float zInput =>Input.GetAxis("Vertical");
         public bool spaceInput =>Input.GetKey(KeyCode.Space);
         public bool shiftInput =>Input.GetKey(KeyCode.LeftShift);
         public Vector3 input => new Vector3(xInput, 0f, zInput).normalized;
-        
+
+        private RaycastHit _groundHit;
+
+
         private void Awake()
         {
-            _controller = GetComponent<CharacterController>();
-            _rigidBody = GetComponent<Rigidbody>();
+            // _rigidBody = GetComponent<Rigidbody>();
+            _weaponController = GetComponent<WeaponController>();
+            Transform = GetComponent<Transform>();
+            Controller = GetComponent<CharacterController>();
+            
             _stateMachine = new StateMachine(this);
             _cameraTransform = Camera.main.transform;
         }
 
         private void Update()
         {
+            // Ground check
+            IsOnSurface = CheckGround(out _groundHit);
+            if(IsOnSurface) GroundIsWalkable = IsWalkable(_groundHit);
+
             // Rotation
             Vector3 cameraViewDir = _cameraTransform.forward;
-            _rigidBody.rotation = Quaternion.LookRotation(
+            Transform.rotation = Quaternion.LookRotation(
                 new Vector3(cameraViewDir.x, 0f, cameraViewDir.z),
                 Vector3.up);
             
-            _stateMachine.State.HandleInput();
-        }
+            _weaponController.RotateWeapon(_cameraTransform.rotation);
 
-        private bool IsFloor(Vector3 normal)
-        {
-            return Mathf.Abs(Vector3.Angle(normal, Vector3.up)) < maxSlope;
-        }
 
-        private void OnCollisionStay(Collision other)
-        {
-            if (other.contacts.Any(collision => IsFloor(collision.normal)))
+            if (IsGrounded)
             {
-                CurrentState.OnLanding();
+                _stateMachine.State.OnLanding();
             }
             else
             {
-                CurrentState.OnLooseGround();
+                if (IsOnSurface)
+                {
+                    _stateMachine.State.OnStartSliding();
+                }
+                else
+                {
+                    _stateMachine.State.OnLooseGround();
+                }
             }
+
+            _stateMachine.State.HandleInput();
         }
 
-        private void OnCollisionEnter(Collision other)
+        // TODO add more rays and increase collider radius
+        private bool CheckGround(out RaycastHit hit)
         {
-            if (other.contacts.Any(collision => IsFloor(collision.normal)))
+            Ray ray = new Ray(transform.position,Vector3.down);
+            return Physics.Raycast(ray, out hit, 1.5f, whatIsFloor);
+        }
+
+        public bool IsWalkable(RaycastHit hit)
+        {
+            return Mathf.Abs(Vector3.Angle(hit.normal, Vector3.up)) <= Controller.slopeLimit;
+        }
+
+
+        public Vector3 SlopeForce()
+        {
+            if(IsOnSurface == false) return Vector3.zero;
+            // return Vector3.down * slopeForce;
+
+            if (GroundIsWalkable)
             {
-                CurrentState.OnLanding();
+                // Stick to surface 
+                return Vector3.down * slopeForce;
             }
-        }
-
-        private void OnCollisionExit(Collision other)
-        {
-            // BUG (other.contacts.Any(collision => IsFloor(collision.normal))) not working
-            CurrentState.OnLooseGround();
+            else
+            {
+                return Vector3.ProjectOnPlane(Physics.gravity, _groundHit.normal) * slidingForceMultiplier;
+            }
         }
     }
 }

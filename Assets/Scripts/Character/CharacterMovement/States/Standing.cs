@@ -1,4 +1,5 @@
-﻿using UnityEditor.Rendering;
+﻿using Character.CharacterMovement.States;
+using UnityEditor.Rendering;
 using UnityEngine;
 
 namespace Player.States
@@ -7,8 +8,6 @@ namespace Player.States
     {
         public Standing(StateMachine machine) : base(machine)
         {
-            IsGroundedState = true;
-            IsMovingState = false;
             Type = Types.Standing;
         }
 
@@ -18,14 +17,12 @@ namespace Player.States
             
             if (Movement.input.magnitude>0f)
             {
+                if (Movement.shiftInput)
+                {
+                    OnStartRunning();
+                    return;
+                }
                 OnStartMoving();
-                return;
-            }
-            
-
-            if (Movement.shiftInput)
-            {
-                OnStartRunning();
                 return;
             }
 
@@ -34,18 +31,8 @@ namespace Player.States
                 OnTryToJump();
                 return;
             }
-            
-            machine.movement.LocalVelocity = new Vector3(0f,machine.movement.LocalVelocity.y,0f);
-        }
 
-        public override void Enter()
-        {
-            
-        }
-
-        public override void Leave()
-        {
-            
+            machine.movement.Controller.SimpleMove(Vector3.zero);
         }
 
         public override void OnLooseGround()

@@ -5,7 +5,14 @@ namespace Weapons
     public class WeaponController : MonoBehaviour
     {
         [SerializeField] private Weapon weapon;
+        [SerializeField] private Transform weaponTransform;
+        
+        public void RotateWeapon(Quaternion rotation)
+        {
+            weaponTransform.rotation = rotation;
+        }
 
+        
         private void Update()
         {
             // Shooting
