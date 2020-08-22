@@ -34,7 +34,19 @@ namespace Player.States
 
             var slopeForce = Movement.SlopeForce();
             Movement.Controller.SimpleMove(Movement.Transform.rotation * Movement.input * Movement.Stats.RunSpeed + slopeForce);
-        }    
+        }
+
+        public override void Enter()
+        {
+            base.Enter();
+            Movement.WeaponController.Positioning.Hide();
+        }
+
+        public override void Leave()
+        {
+            base.Leave();
+            Movement.WeaponController.Positioning.Shoulder();
+        }
 
         public override void OnLooseGround()
         {

@@ -8,6 +8,7 @@ using Weapons;
 
 namespace Player
 {
+    [RequireComponent(typeof(CharacterController),typeof(WeaponController))]
     public class PlayerMovement : MonoBehaviour
     {
         [SerializeField] private float maxSlope = 45f;
@@ -18,10 +19,9 @@ namespace Player
 
 
         private StateMachine _stateMachine;
-        private Transform _cameraTransform;
-        private WeaponController _weaponController;
         public State CurrentState =>  _stateMachine?.State;
 
+        public WeaponController WeaponController { get; private set; }
         public new Transform Transform { get; private set; }
         public CharacterController Controller { get; private set; }
 
@@ -29,8 +29,8 @@ namespace Player
         public bool IsOnSurface { get; private set; }
         public bool GroundIsWalkable{ get; private set; }
 
-        public float xInput =>Input.GetAxis("Horizontal");
-        public float zInput =>Input.GetAxis("Vertical");
+        public float xInput =>Input.GetAxisRaw("Horizontal");
+        public float zInput =>Input.GetAxisRaw("Vertical");
         public bool spaceInput =>Input.GetKey(KeyCode.Space);
         public bool shiftInput =>Input.GetKey(KeyCode.LeftShift);
         public Vector3 input => new Vector3(xInput, 0f, zInput).normalized;
@@ -40,13 +40,11 @@ namespace Player
 
         private void Awake()
         {
-            // _rigidBody = GetComponent<Rigidbody>();
-            _weaponController = GetComponent<WeaponController>();
+            WeaponController = GetComponent<WeaponController>();
             Transform = GetComponent<Transform>();
             Controller = GetComponent<CharacterController>();
             
             _stateMachine = new StateMachine(this);
-            _cameraTransform = Camera.main.transform;
         }
 
         private void Update()
@@ -54,14 +52,6 @@ namespace Player
             // Ground check
             IsOnSurface = CheckGround(out _groundHit);
             if(IsOnSurface) GroundIsWalkable = IsWalkable(_groundHit);
-
-            // Rotation
-            Vector3 cameraViewDir = _cameraTransform.forward;
-            Transform.rotation = Quaternion.LookRotation(
-                new Vector3(cameraViewDir.x, 0f, cameraViewDir.z),
-                Vector3.up);
-            
-            _weaponController.RotateWeapon(_cameraTransform.rotation);
 
 
             if (IsGrounded)

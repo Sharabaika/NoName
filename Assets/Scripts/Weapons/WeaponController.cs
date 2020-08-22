@@ -1,20 +1,31 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace Weapons
 {
+    [RequireComponent(typeof(FPSCamera))]
     public class WeaponController : MonoBehaviour
     {
         [SerializeField] private Weapon weapon;
-        [SerializeField] private Transform weaponTransform;
+        private Transform _weaponTransform;
         
-        public void RotateWeapon(Quaternion rotation)
+        [SerializeField] private WeaponPositioning weaponPositioning;
+        [SerializeField] private Transform shoulderTransform;
+
+        public WeaponPositioning Positioning => weapon.positioning;
+
+        private Transform cameraT;
+
+        private void Awake()
         {
-            weaponTransform.rotation = rotation;
+            cameraT = GetComponent<FPSCamera>().CameraTransform;
+            Positioning.weaponTransform = weapon.transform;
         }
 
-        
         private void Update()
         {
+            Positioning.RotateWeapon(cameraT);
+            
             // Shooting
             if (Input.GetKeyDown(KeyCode.Mouse0))
             {
@@ -31,10 +42,12 @@ namespace Weapons
             if (Input.GetKeyDown(KeyCode.Mouse1))
             {
                 weapon.PullSecondaryTrigger();
+                Positioning.Aim();
             }
             if (Input.GetKeyUp(KeyCode.Mouse1))
             {
                 weapon.ReleaseSecondaryTrigger();
+                Positioning.Shoulder();
             }
 
             

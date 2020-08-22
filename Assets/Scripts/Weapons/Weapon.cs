@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections;
 using Projectiles;
 using UnityEditor;
@@ -24,6 +24,8 @@ namespace Weapons
         protected int remainingAmmo;
 
         [SerializeField] protected ProjectileData projectileData;
+
+        [SerializeField] public WeaponPositioning positioning;
         
         public virtual void PullMainTrigger(){}
 
