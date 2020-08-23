@@ -39,13 +39,13 @@ namespace Player.States
         public override void Enter()
         {
             base.Enter();
-            Movement.WeaponController.Positioning.Hide();
+            Movement.WeaponController.ActiveWeapon.Positioning.Hide();
         }
 
         public override void Leave()
         {
             base.Leave();
-            Movement.WeaponController.Positioning.Shoulder();
+            Movement.WeaponController.ActiveWeapon.Positioning.Shoulder();
         }
 
         public override void OnLooseGround()

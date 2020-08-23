@@ -9,6 +9,7 @@ using Random = UnityEngine.Random;
 
 namespace Weapons
 {
+    // TODO add ammo, ShootAmmo instead of ShootProjectile
     public abstract class Weapon : MonoBehaviour
     {
         [SerializeField] protected float cooldown = 1f;
@@ -25,15 +26,42 @@ namespace Weapons
 
         [SerializeField] protected ProjectileData projectileData;
 
-        [SerializeField] public WeaponPositioning positioning;
+        [SerializeField] private WeaponPositioning positioningPrefab;
         
+        // TODO rework 
+        public WeaponPositioning Positioning { get; private set; }
+
+        private WeaponController _controller;
+        public WeaponController Controller
+        {
+            get => _controller;
+            set
+            {
+                _controller = value;
+                var weaponsParent = _controller.WeaponsParent;
+                if (Positioning != null)
+                {
+                    Destroy(Positioning.gameObject);
+                }
+                Positioning = Instantiate(positioningPrefab, weaponsParent.position,
+                    weaponsParent.rotation, weaponsParent);
+                Positioning.weaponTransform = transform;
+            }
+        }
+
         public virtual void PullMainTrigger(){}
 
         public virtual void ReleaseMainTrigger(){}
 
-        public virtual void PullSecondaryTrigger(){}
+        public virtual void PullSecondaryTrigger()
+        {
+            Positioning.Aim();
+        }
 
-        public virtual void ReleaseSecondaryTrigger(){}
+        public virtual void ReleaseSecondaryTrigger()
+        {
+            Positioning.Shoulder();
+        }
 
         public virtual void Reload()
         {
