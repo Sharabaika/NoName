@@ -341,7 +341,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c726a4c529a4ed585e7a6d75c0d5e67, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cooldown: 1
+  rateOfFire: 300
   abilityCooldown: 1
   projectile: {fileID: 3794857919554359378, guid: 9cf4513825d38054bb3660ad488dea5a, type: 3}
   muzzle: {fileID: 8107871668657021380}
@@ -349,6 +349,7 @@ MonoBehaviour:
   coneHeight: 2
   magazineCapacity: 7
   projectileData: {fileID: 11400000, guid: ccf60a5c7c5eb9e44a894151944407fe, type: 2}
+  positioningPrefab: {fileID: 7892190054663020395, guid: fb3d59d3bc5ec094495c584b3c10e60e, type: 3}
 --- !u!1 &72477184338369461
 GameObject:
   m_ObjectHideFlags: 0

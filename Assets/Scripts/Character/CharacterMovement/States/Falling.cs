@@ -12,12 +12,16 @@ namespace Character.CharacterMovement.States
         {
             Type = Types.Falling;
             _velocity = Vector3.zero;
+            HideWeapon = true;
+            CanAim = false;
         }
         
         public Falling(StateMachine machine, Vector3 velocity) : base(machine)
         {
             Type = Types.Falling;
             _velocity = velocity;
+            HideWeapon = true;
+            CanAim = false;
         }
         
         public override void HandleInput()

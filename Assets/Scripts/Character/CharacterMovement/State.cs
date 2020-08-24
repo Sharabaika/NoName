@@ -1,15 +1,10 @@
-﻿using System.Diagnostics;
-using Character.CharacterMovement.States;
-using UnityEngine;
-using UnityEngine.XR;
-using Debug = UnityEngine.Debug;
+﻿using Character.CharacterMovement.States;
+using Player;
 
-namespace Player
+namespace Character.CharacterMovement
 {
     public abstract class State
     {
-        // TODO serialize
-        
         public enum Types
         {
             Standing,
@@ -19,18 +14,17 @@ namespace Player
             Falling,
             Sliding
         }
-        
+
+        public bool CanAim { get; protected set; } = true;
+        public bool HideWeapon { get; protected set; } = false;
+
         protected readonly StateMachine machine;
 
-        public virtual void HandleInput()
-        {
-        }
-
         public Types Type { get; protected set; }
-        
-        
+
+
         protected PlayerMovement Movement => machine.movement;
-        
+
         protected State(StateMachine machine)
         {
             this.machine = machine;
@@ -38,8 +32,14 @@ namespace Player
 
         #region Logics
 
-        public virtual void Enter(){}
-        
+        public virtual void HandleInput(){}
+
+        public virtual void Enter()
+        {
+            machine.movement.WeaponController.CanAim = CanAim;
+            machine.movement.WeaponController.HidingWeapon = HideWeapon;
+        }
+
         public virtual void Leave(){}
 
 

@@ -1,4 +1,5 @@
-﻿using Character.CharacterMovement.States;
+﻿using Character.CharacterMovement;
+using Character.CharacterMovement.States;
 using UnityEngine;
 
 namespace Player.States
@@ -8,6 +9,8 @@ namespace Player.States
         public Running(StateMachine machine) : base(machine)
         {
             Type = Types.Running;
+            CanAim = false;
+            HideWeapon = true;
         }
 
         public override void HandleInput()
@@ -34,18 +37,6 @@ namespace Player.States
 
             var slopeForce = Movement.SlopeForce();
             Movement.Controller.SimpleMove(Movement.Transform.rotation * Movement.input * Movement.Stats.RunSpeed + slopeForce);
-        }
-
-        public override void Enter()
-        {
-            base.Enter();
-            Movement.WeaponController.ActiveWeapon.Positioning.Hide();
-        }
-
-        public override void Leave()
-        {
-            base.Leave();
-            Movement.WeaponController.ActiveWeapon.Positioning.Shoulder();
         }
 
         public override void OnLooseGround()

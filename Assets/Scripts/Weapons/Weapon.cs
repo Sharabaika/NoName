@@ -1,9 +1,5 @@
-﻿﻿using System;
-using System.Collections;
-using Projectiles;
+﻿using Projectiles;
 using UnityEditor;
-using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.UIElements;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -12,9 +8,9 @@ namespace Weapons
     // TODO add ammo, ShootAmmo instead of ShootProjectile
     public abstract class Weapon : MonoBehaviour
     {
-        [SerializeField] protected float cooldown = 1f;
+        [SerializeField] protected float rateOfFire = 400f;
         [SerializeField] protected float abilityCooldown = 1f;
-        
+
         [SerializeField] protected Projectile projectile;
         [SerializeField] protected Transform muzzle;
 
@@ -27,7 +23,9 @@ namespace Weapons
         [SerializeField] protected ProjectileData projectileData;
 
         [SerializeField] private WeaponPositioning positioningPrefab;
-        
+
+        private float _cooldown;
+
         // TODO rework 
         public WeaponPositioning Positioning { get; private set; }
 
@@ -48,20 +46,14 @@ namespace Weapons
                 Positioning.weaponTransform = transform;
             }
         }
-
+        
         public virtual void PullMainTrigger(){}
 
         public virtual void ReleaseMainTrigger(){}
 
-        public virtual void PullSecondaryTrigger()
-        {
-            Positioning.Aim();
-        }
+        public virtual void PullSecondaryTrigger(){}
 
-        public virtual void ReleaseSecondaryTrigger()
-        {
-            Positioning.Shoulder();
-        }
+        public virtual void ReleaseSecondaryTrigger(){}
 
         public virtual void Reload()
         {
@@ -77,7 +69,7 @@ namespace Weapons
         {
             return true;
         }
-        public float RemainingCooldown => lastFired + cooldown - Time.time;
+        public float RemainingCooldown => lastFired + _cooldown - Time.time;
         public float RemainingAbilityCooldown => lastAbilityUse + abilityCooldown - Time.time;
 
         protected float lastFired = float.NegativeInfinity;
@@ -134,5 +126,17 @@ namespace Weapons
         }
 
         #endregion
+
+        private void OnValidate()
+        {
+            if (rateOfFire > 0f)
+            {
+                _cooldown = 60f / rateOfFire;
+            }
+            else
+            {
+                _cooldown = 1f;
+            }
+        }
     }
 }

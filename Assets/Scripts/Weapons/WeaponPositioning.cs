@@ -5,7 +5,6 @@ namespace Weapons
 {
     public class WeaponPositioning : MonoBehaviour
     {
-
         [SerializeField] private Transform shoulderPos;
         [SerializeField] private Transform aimingPos;
         [SerializeField] private Transform runningPos;
@@ -16,7 +15,7 @@ namespace Weapons
         [SerializeField] private float shakingSpeed;
 
         [HideInInspector]public Transform weaponTransform;
-        [HideInInspector]public Transform camTransform;
+
 
 
         public enum State
@@ -27,9 +26,9 @@ namespace Weapons
             ChangingState
         }
 
-        private State _state = State.Shoulder;
-
-
+        public State CurrentState { get; private set; } = State.Shoulder;
+        private State _targetState= State.Shoulder;
+        
         private Transform GetStateTransform(State state)
         {
             switch (state)
@@ -41,13 +40,7 @@ namespace Weapons
 
             return null;
         }
-
-
-        private void Awake()
-        {
-            camTransform = Camera.main.transform;
-        }
-
+        
         private void Start()
         {
             Shoulder();
@@ -63,12 +56,12 @@ namespace Weapons
 
         public void Aim()
         {
-            PositionWeapon(State.Aiming, ADSTime);
+                PositionWeapon(State.Aiming, ADSTime);
         }
 
         public void Shoulder()
         {
-            PositionWeapon(State.Shoulder);
+                PositionWeapon(State.Shoulder);
         }
 
         public void Hide()
@@ -78,6 +71,9 @@ namespace Weapons
 
         private void PositionWeapon(State state, float requiredTIme = 0.2f)
         {
+            if (state == _targetState) return;
+            _targetState = state;
+
             if (_positioningWeaponCoroutine != null)
             {
                 StopCoroutine(_positioningWeaponCoroutine);
@@ -95,7 +91,7 @@ namespace Weapons
 
         private IEnumerator PositioningWeapon(State state, float time)
         {
-            _state = State.ChangingState;
+            CurrentState = State.ChangingState;
 
             weaponTransform.parent = GetStateTransform(state);
             var startingPos = weaponTransform.localPosition;
@@ -110,7 +106,7 @@ namespace Weapons
                 yield return null;
             }
 
-            _state = state;
+            CurrentState = state;
             StartShakingWeapon();
         }
 
@@ -121,15 +117,15 @@ namespace Weapons
         private void StartShakingWeapon()
         {
             var shakingDegreeMult = 1f;
-            if (_state == State.Aiming) shakingDegreeMult = 0.15f;
-            if (_state == State.Hidden) shakingDegreeMult = 3f;
+            if (CurrentState == State.Aiming) shakingDegreeMult = 0.15f;
+            if (CurrentState == State.Hidden) shakingDegreeMult = 3f;
             _weaponShakingCoroutine =
                 StartCoroutine(WeaponShaking(shakingDegrees * shakingDegreeMult, shakingSpeed * shakingDegreeMult));
         }
 
         private IEnumerator WeaponShaking(float deltaDegrees, float speed)
         {
-            while (_state != State.ChangingState)
+            while (CurrentState != State.ChangingState)
             {
                 float x = Random.Range(-deltaDegrees, deltaDegrees);
                 float y = Random.Range(-deltaDegrees, deltaDegrees);
@@ -143,7 +139,7 @@ namespace Weapons
             Quaternion yRot = Quaternion.AngleAxis(y , Vector3.up);
             Quaternion targetRotation = Quaternion.identity * xRot * yRot;
 
-            while (weaponTransform.localRotation != targetRotation && _state!= State.ChangingState)
+            while (weaponTransform.localRotation != targetRotation && CurrentState!= State.ChangingState)
             {
                 weaponTransform.localRotation = Quaternion.RotateTowards(weaponTransform.localRotation, targetRotation,
                     Time.deltaTime * speed);

@@ -1,20 +1,39 @@
 ﻿using System;
+using System.Collections;
 using UnityEngine;
 
 public class FPSCamera : MonoBehaviour
 {
-    [SerializeField] private Transform cameraTransform;
+    [SerializeField] private Camera attachedCamera;
     [SerializeField] private float sensitivity = 1f;
+    [SerializeField] private float normalFOV = 68f;
+    [SerializeField] private float aimingFOV = 45f;
+    
+    public Camera AttachedCamera => attachedCamera;
+    public Transform CameraTransform => _cameraTransform;
 
-    public Transform CameraTransform => cameraTransform;
-
+    private Transform _cameraTransform;
     private Transform _transform;
     private float _xRot = 0f;
 
-    private void Start()
+    public void SwitchToAimingFOV(float time = 0.2f)
     {
-        _transform = transform;
-        LockCursor();
+        if (_FOVlerpingCoroutine != null)
+        {
+            StopCoroutine(_FOVlerpingCoroutine);
+        }
+
+        _FOVlerpingCoroutine = StartCoroutine(LerpFOV(normalFOV, aimingFOV, time));
+    }
+
+    public void SwitchToNormalFOV(float time = 0.2f)
+    {
+        if (_FOVlerpingCoroutine != null)
+        {
+            StopCoroutine(_FOVlerpingCoroutine);
+        }
+
+        _FOVlerpingCoroutine = StartCoroutine(LerpFOV(aimingFOV, normalFOV, time));
     }
 
     public void LockCursor()
@@ -28,7 +47,34 @@ public class FPSCamera : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
-    
+
+    private float FOV
+    {
+        get => attachedCamera.fieldOfView;
+        set => attachedCamera.fieldOfView = value;
+    }
+
+
+    private Coroutine _FOVlerpingCoroutine;
+
+    private IEnumerator LerpFOV(float from, float to, float overTime)
+    {
+        var t = Mathf.InverseLerp(from, to, FOV) * overTime;
+        while (t<=overTime)
+        {
+            t += Time.deltaTime;
+            FOV = Mathf.Lerp(from, to, t / overTime);
+            yield return null;
+        }
+    } 
+
+    private void Awake()
+    {
+        _transform = transform;
+        _cameraTransform = attachedCamera.transform;
+        LockCursor();
+    }
+
     private void Update()
     {
         float mouseX = Input.GetAxis("Mouse X") * sensitivity * Time.deltaTime;
@@ -37,9 +83,14 @@ public class FPSCamera : MonoBehaviour
         _xRot -= mouseY;
         _xRot = Mathf.Clamp(_xRot, -90f, 90f);
         
-        cameraTransform.localRotation = Quaternion.Euler(_xRot,0f,0f);
+        _cameraTransform.localRotation = Quaternion.Euler(_xRot,0f,0f);
         
         // if camera is not on the vertical axis
         transform.localRotation *= Quaternion.AngleAxis(mouseX, Vector3.up);
+    }
+
+    private void OnValidate()
+    {
+        AttachedCamera.fieldOfView = normalFOV;
     }
 }

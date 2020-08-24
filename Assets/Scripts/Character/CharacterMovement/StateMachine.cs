@@ -1,4 +1,5 @@
-﻿using Character.CharacterMovement.States;
+﻿using Character.CharacterMovement;
+using Character.CharacterMovement.States;
 using Player.States;
 using UnityEditor;
 using UnityEngine;

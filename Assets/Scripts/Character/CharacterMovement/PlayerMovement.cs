@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Character.CharacterMovement;
 using Character.CharacterMovement.States;
 using Cinemachine.Utility;
 using UnityEngine;
@@ -43,7 +44,10 @@ namespace Player
             WeaponController = GetComponent<WeaponController>();
             Transform = GetComponent<Transform>();
             Controller = GetComponent<CharacterController>();
-            
+        }
+
+        private void Start()
+        {
             _stateMachine = new StateMachine(this);
         }
 
