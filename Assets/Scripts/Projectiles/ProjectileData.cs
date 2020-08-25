@@ -14,5 +14,10 @@ namespace Projectiles
         public float damageFallDist = 10f; 
         public float minDamage = 0f;
         public float minDamageDist = 50f;
+
+        public int CalculateDamage(float dist)
+        {
+            return (int)Mathf.Lerp(startingDamage, minDamage, (dist - damageFallDist) / (minDamageDist - damageFallDist));
+        }
     }
 }

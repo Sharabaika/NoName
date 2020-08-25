@@ -7,8 +7,16 @@ namespace Weapons.Automatics
     {
         [SerializeField] private float burstRateOfFire = 0.3f;
         [SerializeField] private int burstCount = 3;
-        public float RemainingBurstShootingCooldown => lastFired + burstRateOfFire - Time.time;
+        [SerializeField] private float burstCooldown = 1f;
+        
+        private float RemainingBurstShootingCooldown => lastFired + burstRateOfFire - Time.time;
 
+        private bool CanUseAbility()
+        {
+            return RemainingBurstShootingCooldown < 0f && remainingAmmo > 0;
+        }
+        
+        private float _lastBurstTiming = float.NegativeInfinity;
         private bool _isBursting = false;
         
         public override void PullMainTrigger()
@@ -43,12 +51,11 @@ namespace Weapons.Automatics
         private IEnumerator BurstShooting(int count)
         {
             _isBursting = true;
-            lastAbilityUse = Time.time;
+            _lastBurstTiming = Time.time;
             for (int i = 0; i < count && remainingAmmo > 0; i++)
             {
                 yield return new WaitForSeconds(RemainingBurstShootingCooldown);
-                WasteAmmo();
-                var newProjectile = ShootProjectile(projectile, muzzle);
+                Shoot();
             }
 
             _isBursting = false;

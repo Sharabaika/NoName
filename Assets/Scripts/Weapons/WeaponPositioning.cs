@@ -9,14 +9,14 @@ namespace Weapons
         [SerializeField] private Transform aimingPos;
         [SerializeField] private Transform runningPos;
 
-        [SerializeField] private float ADSTime=0.2f;
+        [SerializeField] private float aimDownSideTime=0.2f;
 
         [SerializeField] private float shakingDegrees;
         [SerializeField] private float shakingSpeed;
 
         [HideInInspector]public Transform weaponTransform;
 
-
+        public float ADSTime => aimDownSideTime;
 
         public enum State
         {
@@ -56,7 +56,7 @@ namespace Weapons
 
         public void Aim()
         {
-                PositionWeapon(State.Aiming, ADSTime);
+                PositionWeapon(State.Aiming, aimDownSideTime);
         }
 
         public void Shoulder()

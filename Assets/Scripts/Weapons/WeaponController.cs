@@ -48,10 +48,10 @@ namespace Weapons
 
         public void UpdateWeaponPositioning()
         {
-            if (Input.GetKey(KeyCode.Mouse1) && CanAim)
+            if (Input.GetKey(KeyCode.Mouse2) && CanAim)
             {
                 Positioning.Aim();
-                _FPScamera.SwitchToAimingFOV();
+                _FPScamera.SwitchToAimingFOV(ActiveWeapon.AimingFov,ActiveWeapon.Positioning.ADSTime);
                 return;
             }
             if(CanShoulder)
@@ -121,15 +121,15 @@ namespace Weapons
 
 
             // Weapon ability
-            // if (Input.GetKeyDown(KeyCode.Mouse1))
-            // {
-            //     ActiveWeapon.PullSecondaryTrigger();
-            // }
-            //
-            // if (Input.GetKeyUp(KeyCode.Mouse1))
-            // {
-            //     ActiveWeapon.ReleaseSecondaryTrigger();
-            // }
+            if (Input.GetKeyDown(KeyCode.Mouse1))
+            {
+                ActiveWeapon.PullSecondaryTrigger();
+            }
+            
+            if (Input.GetKeyUp(KeyCode.Mouse1))
+            {
+                ActiveWeapon.ReleaseSecondaryTrigger();
+            }
             
             UpdateWeaponPositioning();
 

@@ -6,10 +6,9 @@ namespace Weapons
     {
         public override void PullMainTrigger()
         {
-            if (RemainingCooldown < 0f && remainingAmmo>0)
+            if (CanShoot())
             {
-                ShootProjectile(projectile, muzzle);
-                WasteAmmo();
+                Shoot();
             }
         }
     }

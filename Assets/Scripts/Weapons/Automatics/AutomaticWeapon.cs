@@ -26,8 +26,7 @@ namespace Weapons
             while (remainingAmmo > 0)
             {
                 yield return new WaitForSeconds(RemainingCooldown);
-                WasteAmmo();
-                var newProjectile = ShootProjectile(projectile, muzzle);
+                Shoot();
             }
         }
 

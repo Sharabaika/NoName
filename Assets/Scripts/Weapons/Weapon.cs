@@ -1,19 +1,20 @@
-﻿using Projectiles;
+﻿using System;
+using Projectiles;
 using UnityEditor;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace Weapons
 {
     // TODO add ammo, ShootAmmo instead of ShootProjectile
     public abstract class Weapon : MonoBehaviour
     {
+        [SerializeField] protected float aimingFOV = 45f;
         [SerializeField] protected float rateOfFire = 400f;
-        [SerializeField] protected float abilityCooldown = 1f;
 
-        [SerializeField] protected Projectile projectile;
+        
+        [SerializeField] protected Ammunition.Ammo ammo;
         [SerializeField] protected Transform muzzle;
-
+        
         [SerializeField, Range(0f, 2f)] protected float coneRadius = 1f;
         [SerializeField, Range(0f, 2f)] protected float coneHeight = 1f;
 
@@ -24,12 +25,13 @@ namespace Weapons
 
         [SerializeField] private WeaponPositioning positioningPrefab;
 
-        private float _cooldown;
-
         // TODO rework 
+        public float AimingFov => aimingFOV;
         public WeaponPositioning Positioning { get; private set; }
+        public float RemainingCooldown => lastFired + _cooldown - Time.time;
 
         private WeaponController _controller;
+
         public WeaponController Controller
         {
             get => _controller;
@@ -46,7 +48,8 @@ namespace Weapons
                 Positioning.weaponTransform = transform;
             }
         }
-        
+
+
         public virtual void PullMainTrigger(){}
 
         public virtual void ReleaseMainTrigger(){}
@@ -54,49 +57,34 @@ namespace Weapons
         public virtual void PullSecondaryTrigger(){}
 
         public virtual void ReleaseSecondaryTrigger(){}
-
+        
         public virtual void Reload()
         {
             remainingAmmo = magazineCapacity;
         }
 
-        public virtual bool CanShoot()
+        private float _cooldown;
+
+        protected float lastFired = float.NegativeInfinity;
+
+        protected virtual bool CanShoot()
         {
             return remainingAmmo > 0 && RemainingCooldown < 0f;
         }
 
-        public virtual bool CanUseAbility()
+        protected virtual void WasteAmmo(int amount=1)
         {
-            return true;
-        }
-        public float RemainingCooldown => lastFired + _cooldown - Time.time;
-        public float RemainingAbilityCooldown => lastAbilityUse + abilityCooldown - Time.time;
-
-        protected float lastFired = float.NegativeInfinity;
-        protected float lastAbilityUse = float.NegativeInfinity;
-
-        protected void WasteAmmo(int amount=1)
-        {
-            remainingAmmo = Mathf.Max(0, remainingAmmo - amount);
+            if(amount>remainingAmmo) throw new Exception("cannot waste more ammo than have");
+            remainingAmmo -= amount;
         }
         
-        protected virtual Projectile ShootProjectile(Projectile projectileToShoot,Transform muzzleTransform)
+        protected virtual void Shoot()
         {
             lastFired = Time.time;
-            // TODO mb just rotate by random Euler angle 
-            var proj = Instantiate(projectileToShoot, muzzleTransform.position,
-                Quaternion.FromToRotation(muzzleTransform.forward, RandomDirectionToConeBase()) * muzzleTransform.rotation);
-            proj.ProjectileData = projectileData;
-            return proj;
+            ammo.ShootInCone(muzzle,projectileData,coneRadius,coneHeight);
+            WasteAmmo();
         }
 
-        protected Vector3 RandomDirectionToConeBase()
-        {
-            var baseVector = Random.insideUnitCircle * coneRadius;
-            var pointPos = muzzle.forward * coneHeight + muzzle.up * baseVector.y + muzzle.right * baseVector.x;
-            return pointPos.normalized;
-        }
-        
 #if UNITY_EDITOR
         protected virtual void OnDrawGizmosSelected()
         {
@@ -122,7 +110,6 @@ namespace Weapons
         protected virtual void Awake()
         {
             remainingAmmo = magazineCapacity;
-            projectile.ProjectileData = projectileData;
         }
 
         #endregion

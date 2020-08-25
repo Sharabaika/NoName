@@ -7,23 +7,25 @@ public class FPSCamera : MonoBehaviour
     [SerializeField] private Camera attachedCamera;
     [SerializeField] private float sensitivity = 1f;
     [SerializeField] private float normalFOV = 68f;
-    [SerializeField] private float aimingFOV = 45f;
-    
+
+
     public Camera AttachedCamera => attachedCamera;
     public Transform CameraTransform => _cameraTransform;
 
+    private float _aimingFov = 45f;
     private Transform _cameraTransform;
     private Transform _transform;
     private float _xRot = 0f;
 
-    public void SwitchToAimingFOV(float time = 0.2f)
+    public void SwitchToAimingFOV(float aimingFOV = 45f ,float time = 0.2f)
     {
         if (_FOVlerpingCoroutine != null)
         {
             StopCoroutine(_FOVlerpingCoroutine);
         }
 
-        _FOVlerpingCoroutine = StartCoroutine(LerpFOV(normalFOV, aimingFOV, time));
+        _aimingFov = aimingFOV;
+        _FOVlerpingCoroutine = StartCoroutine(LerpFOV(normalFOV, _aimingFov, time));
     }
 
     public void SwitchToNormalFOV(float time = 0.2f)
@@ -33,7 +35,7 @@ public class FPSCamera : MonoBehaviour
             StopCoroutine(_FOVlerpingCoroutine);
         }
 
-        _FOVlerpingCoroutine = StartCoroutine(LerpFOV(aimingFOV, normalFOV, time));
+        _FOVlerpingCoroutine = StartCoroutine(LerpFOV(_aimingFov, normalFOV, time));
     }
 
     public void LockCursor()

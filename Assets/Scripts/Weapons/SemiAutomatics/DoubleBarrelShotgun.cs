@@ -6,40 +6,32 @@ namespace Weapons.SemiAutomatics
     public class DoubleBarrelShotgun: Shotgun
     {
         [SerializeField] protected Transform secondMuzzle;
-        private bool _isSecondBarrelLoaded = true;
         
+        private bool _isSecondBarrelLoaded = true;
+        private bool _isMainBarrelLoaded = true;
         
         public override void PullMainTrigger()
         {
-            if (CanShoot())
+            if (_isMainBarrelLoaded)
             {
-                WasteAmmo();
-                ShootProjectiles(projectile, projectilesPerShot, muzzle);
+                ammo.ShootInCone(muzzle,projectileData,coneRadius,coneHeight);
+                _isMainBarrelLoaded = false;
             }
         }
 
         public override void PullSecondaryTrigger()
         {
-            if (CanUseAbility())
+            if (_isSecondBarrelLoaded)
             {
+                ammo.ShootInCone(secondMuzzle,projectileData,coneRadius,coneHeight);
                 _isSecondBarrelLoaded = false;
-                ShootProjectiles(projectile, projectilesPerShot, secondMuzzle);
             }
-        }
-
-        public override bool CanShoot()
-        {
-            return remainingAmmo > 0;
-        }
-
-        public override bool CanUseAbility()
-        {
-            return _isSecondBarrelLoaded;
         }
 
         public override void Reload()
         {
             base.Reload();
+            _isMainBarrelLoaded = true;
             _isSecondBarrelLoaded = true;
         }
     }
