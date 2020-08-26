@@ -12,11 +12,13 @@ namespace Weapons
 
         public override void PullMainTrigger()
         {
+            weaponAnimator.PullMainTrigger();
             shootingCoroutine = StartCoroutine(AutomaticFire());
         }
 
         public override void ReleaseMainTrigger()
         {
+            weaponAnimator.ReleaseMainTrigger();
             StopCoroutine(shootingCoroutine);
         }
 

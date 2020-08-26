@@ -8,6 +8,8 @@ namespace Weapons
     // TODO add ammo, ShootAmmo instead of ShootProjectile
     public abstract class Weapon : MonoBehaviour
     {
+        [SerializeField] private Transform weaponT;
+        
         [SerializeField] protected float aimingFOV = 45f;
         [SerializeField] protected float rateOfFire = 400f;
 
@@ -23,33 +25,18 @@ namespace Weapons
 
         [SerializeField] protected ProjectileData projectileData;
 
-        [SerializeField] private WeaponPositioning positioningPrefab;
 
-        // TODO rework 
         public float AimingFov => aimingFOV;
         public WeaponPositioning Positioning { get; private set; }
         public float RemainingCooldown => lastFired + _cooldown - Time.time;
 
+        protected WeaponAnimator weaponAnimator;
         private WeaponController _controller;
-
-        public WeaponController Controller
-        {
-            get => _controller;
-            set
-            {
-                _controller = value;
-                var weaponsParent = _controller.WeaponsParent;
-                if (Positioning != null)
-                {
-                    Destroy(Positioning.gameObject);
-                }
-                Positioning = Instantiate(positioningPrefab, weaponsParent.position,
-                    weaponsParent.rotation, weaponsParent);
-                Positioning.weaponTransform = transform;
-            }
-        }
-
-
+        
+        private float _cooldown;
+        protected float lastFired = float.NegativeInfinity;
+        
+        
         public virtual void PullMainTrigger(){}
 
         public virtual void ReleaseMainTrigger(){}
@@ -57,15 +44,13 @@ namespace Weapons
         public virtual void PullSecondaryTrigger(){}
 
         public virtual void ReleaseSecondaryTrigger(){}
-        
+
+
         public virtual void Reload()
         {
+            weaponAnimator.Reload(remainingAmmo>0);
             remainingAmmo = magazineCapacity;
         }
-
-        private float _cooldown;
-
-        protected float lastFired = float.NegativeInfinity;
 
         protected virtual bool CanShoot()
         {
@@ -110,6 +95,9 @@ namespace Weapons
         protected virtual void Awake()
         {
             remainingAmmo = magazineCapacity;
+            Positioning = GetComponentInChildren<WeaponPositioning>();
+            Positioning.weaponTransform = weaponT;
+            weaponAnimator = GetComponent<WeaponAnimator>();
         }
 
         #endregion

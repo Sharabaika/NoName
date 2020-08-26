@@ -16,6 +16,7 @@ namespace Weapons
 
         [HideInInspector]public Transform weaponTransform;
 
+        public Animator Animator { get; private set; }
         public float ADSTime => aimDownSideTime;
 
         public enum State
@@ -43,6 +44,7 @@ namespace Weapons
         
         private void Start()
         {
+            Animator = GetComponent<Animator>();
             Shoulder();
         }
 
@@ -105,7 +107,7 @@ namespace Weapons
                 weaponTransform.localRotation = Quaternion.Lerp(startingRot, Quaternion.identity, t / time);
                 yield return null;
             }
-
+            
             CurrentState = state;
             StartShakingWeapon();
         }

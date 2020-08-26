@@ -148,10 +148,10 @@ namespace Weapons
             
             _movement = GetComponent<PlayerMovement>();
 
-            mainWeapon.Controller = this;
+            // mainWeapon.Controller = this;
             mainWeapon.gameObject.SetActive(false);
             
-            secondaryWeapon.Controller = this;
+            // secondaryWeapon.Controller = this;
             secondaryWeapon.gameObject.SetActive(false);
         }
 
