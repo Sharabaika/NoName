@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using Player;
 using UnityEngine;
 using UnityEngine.XR;
@@ -12,10 +13,10 @@ namespace Weapons
         [SerializeField] private Weapon secondaryWeapon;
         [SerializeField] private Transform weaponsParent;
 
-        public Weapon ActiveWeapon { get; private set; }
-        public WeaponPositioning Positioning => ActiveWeapon.Positioning;
-        
+        public WeaponPositioning Positioning => _activeWeapon.Positioning;
+
         private bool _canAim;
+
         public bool CanAim
         {
             get=>_canAim;
@@ -26,7 +27,9 @@ namespace Weapons
             }
         }
 
+
         private bool _hidingWeapon;
+
         public bool HidingWeapon
         {
             get => _hidingWeapon;
@@ -37,10 +40,12 @@ namespace Weapons
             }
         }
 
+
         public bool CanShoulder => !HidingWeapon;
-        
+
         public Transform WeaponsParent => weaponsParent;
 
+        private Weapon _activeWeapon;
         private FPSCamera _FPScamera;
         private Transform _cameraT;
 
@@ -50,49 +55,64 @@ namespace Weapons
         {
             if (Input.GetKey(KeyCode.Mouse2) && CanAim)
             {
-                Positioning.Aim();
-                _FPScamera.SwitchToAimingFOV(ActiveWeapon.AimingFov,ActiveWeapon.Positioning.ADSTime);
+                Positioning.PositionWeapon(WeaponPositioning.State.Aiming);
+                _FPScamera.SwitchToAimingFOV(_activeWeapon.AimingFov,_activeWeapon.Positioning.ADSTime);
                 return;
             }
             if(CanShoulder)
             {
-                Positioning.Shoulder();
+                Positioning.PositionWeapon(WeaponPositioning.State.Shoulder);
             }
             else
             {
-                Positioning.Hide();
+                Positioning.PositionWeapon(WeaponPositioning.State.Hidden);
             }
             _FPScamera.SwitchToNormalFOV();
         }
+        
+        
+        // private IEnumerator _changeWeaponCoroutine(Weapon weapon)
+        // {
+        //     _isChangingWeapon = true;
+        //     if (_activeWeapon != null)
+        //     {
+        //         yield return _activeWeapon.Positioning.PositionWeapon(WeaponPositioning.State.Hidden);
+        //         _activeWeapon.gameObject.SetActive(false);
+        //     }
+        //
+        //     if (weapon != null)
+        //     {
+        //         weapon.gameObject.SetActive(true);
+        //         yield return weapon.Positioning.PositionWeapon(WeaponPositioning.State.Shoulder);
+        //         _isWeaponActive = true;
+        //     }
+        //     else
+        //     {
+        //         _isWeaponActive = false;
+        //     }
+        //
+        //     _activeWeapon = weapon;
+        //     _isChangingWeapon = false;
+        // }
+        
+        
         private void ChangeWeapon(Weapon weapon)
         {
-            if(weapon == ActiveWeapon) return;
+            if(weapon == _activeWeapon) return;
 
-            if (ActiveWeapon != null)
+            if (_activeWeapon != null)
             {
-                ActiveWeapon.Positioning.Hide();
-                ActiveWeapon.gameObject.SetActive(false);
+                // _activeWeapon.Positioning.PositionWeapon(WeaponPositioning.State.Hidden);
+                _activeWeapon.gameObject.SetActive(false);
             }
 
-            ActiveWeapon = weapon;
-            ActiveWeapon.gameObject.SetActive(true);
-            ActiveWeapon.Positioning.Hide();
+            _activeWeapon = weapon;
+            _activeWeapon.gameObject.SetActive(true);
+            // _activeWeapon.Positioning.PositionWeapon(WeaponPositioning.State.Hidden);
         }
 
 
         #region Monobehavior callbacks
-
-        private void Start()
-        {
-            if (secondaryWeapon != null)
-            {
-                ChangeWeapon(secondaryWeapon);
-            }
-            else if (mainWeapon != null)
-            {
-                ChangeWeapon(mainWeapon);
-            }
-        }
 
         private void Update()
         {
@@ -105,39 +125,40 @@ namespace Weapons
                 ChangeWeapon(secondaryWeapon);
             }
 
-            ActiveWeapon.Positioning.RotateWeapon(_cameraT);
-
-            // Shooting
-            if (Input.GetKeyDown(KeyCode.Mouse0))
+            if (_activeWeapon != null)
             {
-                ActiveWeapon.PullMainTrigger();
-            }
+                _activeWeapon.Positioning.RotateWeapon(_cameraT);
 
-            // || Input.GetKey(KeyCode.Mouse0)==false may remove bags
-            if (Input.GetKeyUp(KeyCode.Mouse0))
-            {
-                ActiveWeapon.ReleaseMainTrigger();
-            }
+                // Shooting
+                if (Input.GetKeyDown(KeyCode.Mouse0))
+                {
+                    _activeWeapon.PullMainTrigger();
+                }
 
+                // || Input.GetKey(KeyCode.Mouse0)==false may remove bags
+                if (Input.GetKeyUp(KeyCode.Mouse0))
+                {
+                    _activeWeapon.ReleaseMainTrigger();
+                }
 
-            // Weapon ability
-            if (Input.GetKeyDown(KeyCode.Mouse1))
-            {
-                ActiveWeapon.PullSecondaryTrigger();
-            }
-            
-            if (Input.GetKeyUp(KeyCode.Mouse1))
-            {
-                ActiveWeapon.ReleaseSecondaryTrigger();
-            }
-            
-            UpdateWeaponPositioning();
+                // Weapon ability
+                if (Input.GetKeyDown(KeyCode.Mouse1))
+                {
+                    _activeWeapon.PullSecondaryTrigger();
+                }
 
+                if (Input.GetKeyUp(KeyCode.Mouse1))
+                {
+                    _activeWeapon.ReleaseSecondaryTrigger();
+                }
 
-            // Reloading
-            if (Input.GetKeyDown(KeyCode.R))
-            {
-                ActiveWeapon.Reload();
+                // Reloading
+                if (Input.GetKeyDown(KeyCode.R))
+                {
+                    _activeWeapon.Reload();
+                }
+
+                UpdateWeaponPositioning();
             }
         }
 
@@ -147,12 +168,30 @@ namespace Weapons
             _cameraT = _FPScamera.AttachedCamera.transform;
             
             _movement = GetComponent<PlayerMovement>();
+        }
 
-            // mainWeapon.Controller = this;
-            mainWeapon.gameObject.SetActive(false);
-            
-            // secondaryWeapon.Controller = this;
-            secondaryWeapon.gameObject.SetActive(false);
+        // private void OnEnable()
+        // {
+        //     if (mainWeapon != null)
+        //     {
+        //         mainWeapon.gameObject.SetActive(false);
+        //     }
+        //     else if (secondaryWeapon != null)
+        //     {
+        //         secondaryWeapon.gameObject.SetActive(false);
+        //     }
+        // }
+
+        private void Start()
+        {
+            if (mainWeapon != null)
+            {
+                ChangeWeapon(mainWeapon);
+            }
+            else if (secondaryWeapon != null)
+            {
+                ChangeWeapon(secondaryWeapon);
+            }
         }
 
         #endregion

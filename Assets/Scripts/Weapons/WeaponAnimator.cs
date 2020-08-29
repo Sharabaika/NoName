@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace Weapons
 {
+    [RequireComponent(typeof(Animator))]
     public class WeaponAnimator : MonoBehaviour
     {
         [SerializeField] private string reloadAnimationString = "Reload";
@@ -39,7 +40,7 @@ namespace Weapons
             _animator.Play(reloadAnimationString,0,0);
         }
 
-        private void Awake()
+        private void OnEnable()
         {
             _animator = GetComponent<Animator>();
         }

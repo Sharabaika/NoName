@@ -42,10 +42,10 @@ namespace Weapons
             return null;
         }
         
-        private void Start()
+        private void OnEnable()
         {
             Animator = GetComponent<Animator>();
-            Shoulder();
+            PositionWeapon(State.Shoulder);
         }
 
         public void RotateWeapon(Transform cameraT)
@@ -55,25 +55,9 @@ namespace Weapons
             aimingPos.RotateAround(cameraPosition,cameraT.right,-angle);
             shoulderPos.RotateAround(cameraPosition,cameraT.right,-angle);
         }
-
-        public void Aim()
+        
+        public void PositionWeapon(State state, float requiredTIme = 0.2f)
         {
-                PositionWeapon(State.Aiming, aimDownSideTime);
-        }
-
-        public void Shoulder()
-        {
-                PositionWeapon(State.Shoulder);
-        }
-
-        public void Hide()
-        {
-            PositionWeapon(State.Hidden);
-        }
-
-        private void PositionWeapon(State state, float requiredTIme = 0.2f)
-        {
-            if (state == _targetState) return;
             _targetState = state;
 
             if (_positioningWeaponCoroutine != null)

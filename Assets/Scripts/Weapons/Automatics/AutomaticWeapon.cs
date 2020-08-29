@@ -1,24 +1,20 @@
 ﻿using System.Collections;
-using System.Runtime.InteropServices;
-using Projectiles;
 using UnityEngine;
 
-namespace Weapons
+namespace Weapons.Automatics
 {
     public class AutomaticWeapon : Weapon
     {
         // protected IEnumerator shootingCoroutine;
         protected Coroutine shootingCoroutine;
 
-        public override void PullMainTrigger()
+        protected override void OnPullMainTrigger()
         {
-            weaponAnimator.PullMainTrigger();
             shootingCoroutine = StartCoroutine(AutomaticFire());
         }
 
-        public override void ReleaseMainTrigger()
+        protected override void OnReleaseMainTrigger()
         {
-            weaponAnimator.ReleaseMainTrigger();
             StopCoroutine(shootingCoroutine);
         }
 

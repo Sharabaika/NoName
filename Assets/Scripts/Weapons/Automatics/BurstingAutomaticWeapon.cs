@@ -18,8 +18,8 @@ namespace Weapons.Automatics
         
         private float _lastBurstTiming = float.NegativeInfinity;
         private bool _isBursting = false;
-        
-        public override void PullMainTrigger()
+
+        protected override void OnPullMainTrigger()
         {
             if (_isBursting == false)
             {
@@ -27,7 +27,7 @@ namespace Weapons.Automatics
             }
         }
 
-        public override void ReleaseMainTrigger()
+        protected override void OnReleaseMainTrigger()
         {
             if (_isBursting == false && shootingCoroutine != null)
             {
@@ -35,7 +35,7 @@ namespace Weapons.Automatics
             }
         }
 
-        public override void PullSecondaryTrigger()
+        protected override void OnPullSecondaryTrigger()
         {
             if (CanUseAbility() && _isBursting==false)
             {

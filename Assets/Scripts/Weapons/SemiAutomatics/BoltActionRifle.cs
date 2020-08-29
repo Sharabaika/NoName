@@ -2,14 +2,14 @@
 {
     public class BoltActionRifle : Weapon
     {
-        public override void PullMainTrigger()
+        protected override void OnPullMainTrigger()
         {
             if (CanShoot())
             {
 
                 Shoot();
                 // TODO dont know how to do it
-                Positioning.Shoulder();
+                Positioning.PositionWeapon(WeaponPositioning.State.Shoulder);
             }
         }
     }

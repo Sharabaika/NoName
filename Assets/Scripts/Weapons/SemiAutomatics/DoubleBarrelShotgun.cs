@@ -9,8 +9,8 @@ namespace Weapons.SemiAutomatics
         
         private bool _isSecondBarrelLoaded = true;
         private bool _isMainBarrelLoaded = true;
-        
-        public override void PullMainTrigger()
+
+        protected override void OnPullMainTrigger()
         {
             if (_isMainBarrelLoaded)
             {
@@ -19,7 +19,7 @@ namespace Weapons.SemiAutomatics
             }
         }
 
-        public override void PullSecondaryTrigger()
+        protected override void OnPullSecondaryTrigger()
         {
             if (_isSecondBarrelLoaded)
             {

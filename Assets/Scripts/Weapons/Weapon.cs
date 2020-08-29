@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Weapons
 {
-    // TODO add ammo, ShootAmmo instead of ShootProjectile
+    [RequireComponent(typeof(WeaponAnimator))]
     public abstract class Weapon : MonoBehaviour
     {
         [SerializeField] private Transform weaponT;
@@ -25,30 +25,51 @@ namespace Weapons
 
         [SerializeField] protected ProjectileData projectileData;
 
-
         public float AimingFov => aimingFOV;
         public WeaponPositioning Positioning { get; private set; }
-        public float RemainingCooldown => lastFired + _cooldown - Time.time;
+        protected float RemainingCooldown => lastFired + _cooldown - Time.time;
 
-        protected WeaponAnimator weaponAnimator;
-        private WeaponController _controller;
-        
-        private float _cooldown;
         protected float lastFired = float.NegativeInfinity;
+
+        private WeaponAnimator _weaponAnimator;
+        private float _cooldown;
+
+        public void PullMainTrigger()
+        {
+            _weaponAnimator.PullMainTrigger();
+            OnPullMainTrigger();
+        }
+
+        public void ReleaseMainTrigger()
+        {
+            _weaponAnimator.ReleaseMainTrigger();
+            OnReleaseMainTrigger();
+        }
+
+        public void PullSecondaryTrigger()
+        {
+            // animator
+            OnPullSecondaryTrigger();
+        }
+
+        public void ReleaseSecondaryTrigger()
+        {
+            // animator
+            OnReleaseSecondaryTrigger();
+        }
         
-        
-        public virtual void PullMainTrigger(){}
+        protected virtual void OnPullMainTrigger(){}
 
-        public virtual void ReleaseMainTrigger(){}
+        protected virtual void OnReleaseMainTrigger(){}
 
-        public virtual void PullSecondaryTrigger(){}
+        protected virtual void OnPullSecondaryTrigger(){}
 
-        public virtual void ReleaseSecondaryTrigger(){}
+        protected virtual void OnReleaseSecondaryTrigger(){}
 
 
         public virtual void Reload()
         {
-            weaponAnimator.Reload(remainingAmmo>0);
+            _weaponAnimator.Reload(remainingAmmo>0);
             remainingAmmo = magazineCapacity;
         }
 
@@ -92,12 +113,12 @@ namespace Weapons
 
         #region MonobehaviorEvents
 
-        protected virtual void Awake()
+        protected virtual void OnEnable()
         {
             remainingAmmo = magazineCapacity;
             Positioning = GetComponentInChildren<WeaponPositioning>();
             Positioning.weaponTransform = weaponT;
-            weaponAnimator = GetComponent<WeaponAnimator>();
+            _weaponAnimator = GetComponent<WeaponAnimator>();
         }
 
         #endregion
