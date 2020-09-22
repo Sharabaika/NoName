@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using Projectiles;
 using UnityEditor;
@@ -27,6 +27,8 @@ namespace Weapons
 
         [SerializeField] protected ProjectileData projectileData;
 
+        public Action onShoot;
+        
         public float AimingFov => aimingFOV;
         public WeaponPositioning Positioning { get; private set; }
         protected float RemainingCooldown => lastFired + _cooldown - Time.time;
@@ -133,7 +135,8 @@ namespace Weapons
 
 
             lastFired = Time.time;
-            ammo.ShootInCone(muzzle,projectileData,coneRadius,coneHeight);
+            ammo.ShootInCone(muzzle, projectileData, coneRadius, coneHeight);
+            onShoot?.Invoke();
             WasteAmmo();
         }
 
