@@ -8,15 +8,9 @@ namespace Weapons
     public class WeaponAnimator : MonoBehaviour
     {
         [SerializeField] private string idleString = "Iddle";
-        [SerializeField] private string reloadAnimationString = "Reload";
-        [SerializeField] private string isTacticalReloadString = "isTacticalReload";
+        [SerializeField] private string switchMagString = "SwitchMag";
+        [SerializeField] private string pullTheBoltString = "PullTheBolt";
         [SerializeField] private string isMainTriggerPulledString = "isMainTriggerPulled";
-
-        public bool isTacticalReload
-        {
-            get => _animator.GetBool(isTacticalReloadString);
-            set => _animator.SetBool(isTacticalReloadString, value);
-        }
 
         public bool isMainTriggerPulled
         {
@@ -41,10 +35,14 @@ namespace Weapons
             _animator.Play(idleString);
         }
 
-        public void Reload(bool isTactical = false)
+        public void SwitchMag()
         {
-            isTacticalReload = isTactical;
-            _animator.Play(reloadAnimationString,0,0);
+            _animator.CrossFade(switchMagString,0,0);
+        }
+
+        public void PullTheBolt()
+        {
+            _animator.CrossFade(pullTheBoltString, 0, 0);
         }
 
         private void OnEnable()

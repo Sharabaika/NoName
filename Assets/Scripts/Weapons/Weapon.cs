@@ -22,12 +22,16 @@ namespace Weapons
         [SerializeField] protected int magazineCapacity = 25;
         protected int remainingAmmo;
 
-        [SerializeField] protected float ReloadingTime = 1f;
-        [SerializeField] protected float TacticalReloadingTime = 1f;
+        [SerializeField] protected float MagSwitchingTime = 1f;
+        [SerializeField] protected float BoltActionTime = 0.5f;
 
         [SerializeField] protected ProjectileData projectileData;
 
+        
+        // Delegates
         public Action onShoot;
+        public Action onMagSwitch;
+        public Action onBoltAction;
         
         public float AimingFov => aimingFOV;
         public WeaponPositioning Positioning { get; private set; }
@@ -72,45 +76,57 @@ namespace Weapons
 
         protected virtual void OnReleaseSecondaryTrigger(){}
 
-        // Reloading
-        protected virtual bool IsTacticalReload()
-        {
-            return remainingAmmo > 0;
-        }
-
-        protected virtual float GetTimeToReload()
-        {
-            return IsTacticalReload() ? TacticalReloadingTime : ReloadingTime;
-        }
-
         protected virtual bool CanReload()
         {
             return remainingAmmo < magazineCapacity;
         }
+        protected bool IsNeededToPullTheBolt()
+        {
+            return remainingAmmo == 0;
+        }
 
-        protected bool _isReloading = false;
+        protected bool isReloading = false;
+        protected bool isMagChanged = true;
+        protected bool isBoltPulled = true;
         private Coroutine _reloadingCoroutine;
+        
         protected virtual IEnumerator Reloading()
         {
-            _isReloading = true;
-            _weaponAnimator.Reload(IsTacticalReload());
-            yield return new WaitForSeconds(GetTimeToReload());
-            remainingAmmo = magazineCapacity;
-            _isReloading = false;
+            isReloading = true;
+
+            if (isMagChanged == false)
+            {
+                _weaponAnimator.SwitchMag();
+                onMagSwitch?.Invoke();
+                yield return new WaitForSeconds(MagSwitchingTime);
+                isMagChanged = true;
+                remainingAmmo = magazineCapacity;
+            }
+
+            if (isBoltPulled == false)
+            {
+                _weaponAnimator.PullTheBolt();
+                yield return new WaitForSeconds(BoltActionTime);
+                isBoltPulled = true;
+            }
+
+            isReloading = false;
         }
 
         public void Reload()
         {
             // TODO sync with animator
-            if (CanReload() && _isReloading == false)
+            if (CanReload() && isReloading == false)
             {
+                isMagChanged = false;
+                isBoltPulled = !IsNeededToPullTheBolt();
                 _reloadingCoroutine = StartCoroutine(Reloading());
             }
         }
 
         public void InterruptReloading()
         {
-            _isReloading = false;
+            isReloading = false;
             if(_reloadingCoroutine!=null)
                 StopCoroutine(_reloadingCoroutine);
             _weaponAnimator.InterruptReloading();
@@ -120,7 +136,7 @@ namespace Weapons
         // Shooting
         protected virtual bool CanShoot()
         {
-            return remainingAmmo > 0 && RemainingCooldown < 0f && _isReloading == false;
+            return remainingAmmo > 0 && RemainingCooldown < 0f && !isReloading && isBoltPulled;
         }
 
         protected virtual void WasteAmmo(int amount=1)
