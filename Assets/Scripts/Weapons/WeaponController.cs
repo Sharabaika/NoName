@@ -1,126 +1,60 @@
 ﻿using System;
 using System.Collections;
+using System.Diagnostics;
+using Character.CharacterMovement;
 using Player;
 using UnityEngine;
 using UnityEngine.XR;
+using Debug = UnityEngine.Debug;
 
 namespace Weapons
 {
-    [RequireComponent(typeof(FPSCamera),typeof(PlayerMovement))]
+    [RequireComponent(typeof(FPSCamera),typeof(PlayerMovement), typeof(PlayerInput))]
     public class WeaponController : MonoBehaviour
     {
         [SerializeField] private Weapon mainWeapon;
         [SerializeField] private Weapon secondaryWeapon;
         [SerializeField] private Transform weaponsParent;
-
+        
         public WeaponPositioning Positioning => _activeWeapon.Positioning;
 
-        private bool _canAim;
-
-        public bool CanAim
+        public bool CanReload
         {
-            get=>_canAim;
+            get => _canReload;
             set
             {
-                _canAim = value;
-                _hidingWeapon = !_hidingWeapon == value;
+                _canReload = value;
+                if(value == false) _activeWeapon.InterruptReloading();
             }
         }
+        private bool _canReload = true;
 
-
-        private bool _hidingWeapon;
-
-        public bool HidingWeapon
+        public WeaponPositioningRestrictions PositioningRestrictions
         {
-            get => _hidingWeapon;
+            get => _positioningRestrictions;
             set
             {
-                _hidingWeapon = value;
-                _canAim = !value && _canAim;
+                _positioningRestrictions = value;
+                UpdateWeaponPositioning();
             }
         }
-
-
-        public bool CanShoulder => !HidingWeapon;
-
+        private WeaponPositioningRestrictions _positioningRestrictions = WeaponPositioningRestrictions.None;
         public Transform WeaponsParent => weaponsParent;
 
+        private PlayerInput _input;
         private Weapon _activeWeapon;
         private FPSCamera _FPScamera;
         private Transform _cameraT;
-
-        private PlayerMovement _movement;
-
-        public void UpdateWeaponPositioning()
-        {
-            if (Input.GetKey(KeyCode.Mouse2) && CanAim)
-            {
-                Positioning.PositionWeapon(WeaponPositioning.State.Aiming);
-                _FPScamera.SwitchToAimingFOV(_activeWeapon.AimingFov,_activeWeapon.Positioning.ADSTime);
-                return;
-            }
-            if(CanShoulder)
-            {
-                Positioning.PositionWeapon(WeaponPositioning.State.Shoulder);
-            }
-            else
-            {
-                Positioning.PositionWeapon(WeaponPositioning.State.Hidden);
-            }
-            _FPScamera.SwitchToNormalFOV();
-        }
-        
-        
-        // private IEnumerator _changeWeaponCoroutine(Weapon weapon)
-        // {
-        //     _isChangingWeapon = true;
-        //     if (_activeWeapon != null)
-        //     {
-        //         yield return _activeWeapon.Positioning.PositionWeapon(WeaponPositioning.State.Hidden);
-        //         _activeWeapon.gameObject.SetActive(false);
-        //     }
-        //
-        //     if (weapon != null)
-        //     {
-        //         weapon.gameObject.SetActive(true);
-        //         yield return weapon.Positioning.PositionWeapon(WeaponPositioning.State.Shoulder);
-        //         _isWeaponActive = true;
-        //     }
-        //     else
-        //     {
-        //         _isWeaponActive = false;
-        //     }
-        //
-        //     _activeWeapon = weapon;
-        //     _isChangingWeapon = false;
-        // }
-        
-        
-        private void ChangeWeapon(Weapon weapon)
-        {
-            if(weapon == _activeWeapon) return;
-
-            if (_activeWeapon != null)
-            {
-                // _activeWeapon.Positioning.PositionWeapon(WeaponPositioning.State.Hidden);
-                _activeWeapon.gameObject.SetActive(false);
-            }
-
-            _activeWeapon = weapon;
-            _activeWeapon.gameObject.SetActive(true);
-            // _activeWeapon.Positioning.PositionWeapon(WeaponPositioning.State.Hidden);
-        }
-
 
         #region Monobehavior callbacks
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Alpha1))
+            if (_input.isMainWeaponSlotKey)
             {
                 ChangeWeapon(mainWeapon);
             }
-            else if (Input.GetKeyDown(KeyCode.Alpha2))
+            else if (_input.isSecondaryWeaponSlotKey)
             {
                 ChangeWeapon(secondaryWeapon);
             }
@@ -128,6 +62,8 @@ namespace Weapons
             if (_activeWeapon != null)
             {
                 _activeWeapon.Positioning.RotateWeapon(_cameraT);
+                
+                // TODO remove release main trigger etc
 
                 // Shooting
                 if (Input.GetKeyDown(KeyCode.Mouse0))
@@ -155,7 +91,7 @@ namespace Weapons
                 // Reloading
                 if (Input.GetKeyDown(KeyCode.R))
                 {
-                    _activeWeapon.Reload();
+                    if(CanReload)_activeWeapon.Reload();
                 }
 
                 UpdateWeaponPositioning();
@@ -166,34 +102,81 @@ namespace Weapons
         {
             _FPScamera = GetComponent<FPSCamera>();
             _cameraT = _FPScamera.AttachedCamera.transform;
-            
-            _movement = GetComponent<PlayerMovement>();
+            _input = GetComponent<PlayerInput>();
         }
-
-        // private void OnEnable()
-        // {
-        //     if (mainWeapon != null)
-        //     {
-        //         mainWeapon.gameObject.SetActive(false);
-        //     }
-        //     else if (secondaryWeapon != null)
-        //     {
-        //         secondaryWeapon.gameObject.SetActive(false);
-        //     }
-        // }
 
         private void Start()
         {
+            var movement = GetComponent<PlayerMovement>();
+            if (movement != null)
+            {
+                movement.Machine.OnStateChange += UpdateMovementStateRestrictions;
+            }
+            
             if (mainWeapon != null)
             {
-                ChangeWeapon(mainWeapon);
+                mainWeapon.gameObject.SetActive(true);
             }
-            else if (secondaryWeapon != null)
+            if (secondaryWeapon != null)
             {
-                ChangeWeapon(secondaryWeapon);
+                secondaryWeapon.gameObject.SetActive(true);
+                secondaryWeapon.Positioning.PositionWeapon(WeaponPositioning.State.Hidden);
             }
+            ChangeWeapon(mainWeapon);
         }
 
+
+        private void OnDestroy()
+        {
+            var movement = GetComponent<PlayerMovement>();
+            if (movement != null)
+            {
+                movement.Machine.OnStateChange -= UpdateMovementStateRestrictions;
+            }
+        }
         #endregion
+        
+        private void UpdateMovementStateRestrictions(State newState)
+        {
+            PositioningRestrictions = newState.Restrictions;
+            CanReload = newState.CanReload;
+        }
+        
+        private void UpdateWeaponPositioning()
+        {
+            if(_activeWeapon is null) return;
+            
+            if (_input.isAimKey && _positioningRestrictions==WeaponPositioningRestrictions.None)
+            {
+                Positioning.PositionWeapon(WeaponPositioning.State.Aiming);
+                _FPScamera.SwitchToAimingFOV(_activeWeapon.AimingFov,_activeWeapon.Positioning.ADSTime);
+                return;
+            }
+            
+            if(_input.isAimKey == false && _positioningRestrictions!=WeaponPositioningRestrictions.ForceLower)
+            {
+                Positioning.PositionWeapon(WeaponPositioning.State.Up);
+            }
+            else
+            {
+                Positioning.PositionWeapon(WeaponPositioning.State.Down);
+            }
+            _FPScamera.SwitchToNormalFOV();
+        }
+
+        private void ChangeWeapon(Weapon weapon)
+        {
+            // TODO rework as coroutine 
+            if(weapon == _activeWeapon) return;
+
+            if (_activeWeapon != null)
+            {
+                Positioning.PositionWeapon(WeaponPositioning.State.Hidden);
+                _activeWeapon.InterruptReloading();
+            }
+
+            _activeWeapon = weapon;
+            UpdateWeaponPositioning();
+        }
     }
 }

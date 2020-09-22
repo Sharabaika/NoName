@@ -17,33 +17,33 @@ namespace Player.States
         public override void HandleInput()
         {
             
-            if (Movement.shiftInput)
+            if (Input.shiftInput)
             {
                 OnStartRunning();
                 return;
             }
 
-            if (Movement.spaceInput)
+            if (Input.spaceInput)
             {
                 OnTryToJump();
                 return;
             }
 
-            if (Movement.input == Vector3.zero)
+            if (Input.movementInput == Vector3.zero)
             {
                 OnStopMoving();
                 return;
             }
 
             var slopeForce = Movement.SlopeForce();
-            Movement.Controller.SimpleMove(Movement.Transform.rotation * Movement.input * Movement.Stats.WalkSpeed + slopeForce);
+            Movement.Controller.SimpleMove(Movement.Transform.rotation * Input.movementInput * Movement.Stats.WalkSpeed + slopeForce);
         }
 
         public override void OnLooseGround()
         {
             base.OnLooseGround();
             machine.ChangeState(new Falling(machine,
-                Movement.Transform.rotation * Movement.input * Movement.Stats.WalkSpeed));
+                Movement.Transform.rotation * Input.movementInput * Movement.Stats.WalkSpeed));
         }
 
         public override void OnStopMoving()
@@ -62,7 +62,7 @@ namespace Player.States
         {
             base.OnTryToJump();
             machine.ChangeState(new Jumping(machine,
-                Movement.Transform.rotation * Movement.input * Movement.Stats.WalkSpeed));
+                Movement.Transform.rotation * Input.movementInput * Movement.Stats.WalkSpeed));
         }
     }
 }

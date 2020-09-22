@@ -16,9 +16,9 @@ namespace Player.States
         {
             base.HandleInput();
             
-            if (Movement.input.magnitude>0f)
+            if (Input.movementInput.magnitude>0f)
             {
-                if (Movement.shiftInput)
+                if (Input.shiftInput)
                 {
                     OnStartRunning();
                     return;
@@ -27,19 +27,19 @@ namespace Player.States
                 return;
             }
 
-            if (Movement.spaceInput)
+            if (Input.spaceInput)
             {
                 OnTryToJump();
                 return;
             }
 
-            machine.movement.Controller.SimpleMove(Vector3.zero);
+            machine.Movement.Controller.SimpleMove(Vector3.zero);
         }
 
         public override void OnLooseGround()
         {
             base.OnLooseGround();
-            machine.ChangeState(new Falling(machine));
+            machine.ChangeState(new Falling(machine, Vector3.zero));
         }
         
         public override void OnStartMoving()
@@ -57,7 +57,7 @@ namespace Player.States
         public override void OnTryToJump()
         {
             base.OnTryToJump();
-            machine.ChangeState(new Jumping(machine));
+            machine.ChangeState(new Jumping(machine, Vector3.zero));
         }
     }
 }

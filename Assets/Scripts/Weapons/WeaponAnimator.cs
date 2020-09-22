@@ -3,9 +3,11 @@ using UnityEngine;
 
 namespace Weapons
 {
+    // TODO rework animators for only one controller
     [RequireComponent(typeof(Animator))]
     public class WeaponAnimator : MonoBehaviour
     {
+        [SerializeField] private string idleString = "Iddle";
         [SerializeField] private string reloadAnimationString = "Reload";
         [SerializeField] private string isTacticalReloadString = "isTacticalReload";
         [SerializeField] private string isMainTriggerPulledString = "isMainTriggerPulled";
@@ -32,6 +34,11 @@ namespace Weapons
         public void ReleaseMainTrigger()
         {
             isMainTriggerPulled = false;
+        }
+
+        public void InterruptReloading()
+        {
+            _animator.Play(idleString);
         }
 
         public void Reload(bool isTactical = false)

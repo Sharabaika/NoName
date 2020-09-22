@@ -1,6 +1,7 @@
 ﻿using Player;
 using Player.States;
 using UnityEngine;
+using Weapons;
 
 namespace Character.CharacterMovement.States
 {
@@ -9,6 +10,8 @@ namespace Character.CharacterMovement.States
         public Sliding(StateMachine machine) : base(machine)
         {
             Type = Types.Sliding;
+            Restrictions = WeaponPositioningRestrictions.CantAim;
+            CanReload = true;
         }
 
         public override void HandleInput()
@@ -17,7 +20,7 @@ namespace Character.CharacterMovement.States
 
             var slopeForce = Movement.SlopeForce();
             Movement.Controller.SimpleMove(slopeForce +
-                                           Movement.transform.rotation * Movement.input *
+                                           Movement.transform.rotation * Input.movementInput *
                                            Movement.Stats.FallingControllability);
         }
 

@@ -1,6 +1,7 @@
 ﻿using Character.CharacterMovement;
 using Character.CharacterMovement.States;
 using UnityEngine;
+using Weapons;
 
 namespace Player.States
 {
@@ -9,41 +10,41 @@ namespace Player.States
         public Running(StateMachine machine) : base(machine)
         {
             Type = Types.Running;
-            CanAim = false;
-            HideWeapon = true;
+            Restrictions = WeaponPositioningRestrictions.ForceLower;
+            CanReload = false;
         }
 
         public override void HandleInput()
         {
             base.HandleInput();
             
-            if (Movement.shiftInput==false)
+            if (Input.shiftInput==false)
             {
                 OnStopRunning();
                 return;
             }
 
-            if (Movement.spaceInput)
+            if (Input.spaceInput)
             {
                 OnTryToJump();
                 return;
             }
 
-            if (Movement.input == Vector3.zero)
+            if (Input.movementInput == Vector3.zero)
             {
                 OnStopMoving();
                 return;
             }
 
             var slopeForce = Movement.SlopeForce();
-            Movement.Controller.SimpleMove(Movement.Transform.rotation * Movement.input * Movement.Stats.RunSpeed + slopeForce);
+            Movement.Controller.SimpleMove(Movement.Transform.rotation * Input.movementInput * Movement.Stats.RunSpeed + slopeForce);
         }
 
         public override void OnLooseGround()
         {
             base.OnLooseGround();
             machine.ChangeState(new Falling(machine,
-                Movement.Transform.rotation * Movement.input * Movement.Stats.RunSpeed));
+                Movement.Transform.rotation * Input.movementInput * Movement.Stats.RunSpeed));
         }
 
         public override void OnStopMoving()
@@ -62,7 +63,7 @@ namespace Player.States
         {
             base.OnTryToJump();
             machine.ChangeState(new Jumping(machine,
-                Movement.Transform.rotation * Movement.input * Movement.Stats.RunSpeed));
+                Movement.Transform.rotation * Input.movementInput * Movement.Stats.RunSpeed));
         }
     }
 }

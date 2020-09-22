@@ -2,7 +2,6 @@
 using System.Linq;
 using Character.CharacterMovement;
 using Character.CharacterMovement.States;
-using Cinemachine.Utility;
 using UnityEngine;
 using UnityEngine.XR;
 using Weapons;
@@ -19,8 +18,8 @@ namespace Player
         [SerializeField, Range(0,2)] private float slidingForceMultiplier=0.25f;
 
 
-        private StateMachine _stateMachine;
-        public State CurrentState =>  _stateMachine?.State;
+        public StateMachine Machine { get; private set; }
+        public State CurrentState =>  Machine?.State;
 
         public WeaponController WeaponController { get; private set; }
         public new Transform Transform { get; private set; }
@@ -30,17 +29,13 @@ namespace Player
         public bool IsOnSurface { get; private set; }
         public bool GroundIsWalkable{ get; private set; }
 
-        public float xInput =>Input.GetAxisRaw("Horizontal");
-        public float zInput =>Input.GetAxisRaw("Vertical");
-        public bool spaceInput =>Input.GetKey(KeyCode.Space);
-        public bool shiftInput =>Input.GetKey(KeyCode.LeftShift);
-        public Vector3 input => new Vector3(xInput, 0f, zInput).normalized;
-
+        public PlayerInput Input { get; private set; }
+        
         private RaycastHit _groundHit;
-
 
         private void Awake()
         {
+            Input = GetComponent<PlayerInput>();
             WeaponController = GetComponent<WeaponController>();
             Transform = GetComponent<Transform>();
             Controller = GetComponent<CharacterController>();
@@ -48,7 +43,7 @@ namespace Player
 
         private void Start()
         {
-            _stateMachine = new StateMachine(this);
+            Machine = new StateMachine(this);
         }
 
         private void Update()
@@ -60,21 +55,21 @@ namespace Player
 
             if (IsGrounded)
             {
-                _stateMachine.State.OnLanding();
+                Machine.State.OnLanding();
             }
             else
             {
                 if (IsOnSurface)
                 {
-                    _stateMachine.State.OnStartSliding();
+                    Machine.State.OnStartSliding();
                 }
                 else
                 {
-                    _stateMachine.State.OnLooseGround();
+                    Machine.State.OnLooseGround();
                 }
             }
 
-            _stateMachine.State.HandleInput();
+            Machine.State.HandleInput();
         }
 
         // TODO add more rays and increase collider radius

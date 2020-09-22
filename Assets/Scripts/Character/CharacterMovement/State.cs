@@ -1,5 +1,7 @@
 ﻿using Character.CharacterMovement.States;
 using Player;
+using UnityEngine;
+using Weapons;
 
 namespace Character.CharacterMovement
 {
@@ -15,15 +17,14 @@ namespace Character.CharacterMovement
             Sliding
         }
 
-        public bool CanAim { get; protected set; } = true;
-        public bool HideWeapon { get; protected set; } = false;
-
-        protected readonly StateMachine machine;
-
+        public WeaponPositioningRestrictions Restrictions { get; protected set; } = WeaponPositioningRestrictions.None;
+        public bool CanReload { get; protected set; } = true;
         public Types Type { get; protected set; }
 
+        protected PlayerInput Input => Movement.Input;
 
-        protected PlayerMovement Movement => machine.movement;
+        protected readonly StateMachine machine;
+        protected PlayerMovement Movement => machine.Movement;
 
         protected State(StateMachine machine)
         {
@@ -36,8 +37,7 @@ namespace Character.CharacterMovement
 
         public virtual void Enter()
         {
-            machine.movement.WeaponController.CanAim = CanAim;
-            machine.movement.WeaponController.HidingWeapon = HideWeapon;
+            
         }
 
         public virtual void Leave(){}

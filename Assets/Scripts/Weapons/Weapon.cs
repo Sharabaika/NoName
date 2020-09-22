@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections;
 using Projectiles;
 using UnityEditor;
 using UnityEngine;
@@ -8,8 +9,6 @@ namespace Weapons
     [RequireComponent(typeof(WeaponAnimator))]
     public abstract class Weapon : MonoBehaviour
     {
-        [SerializeField] private Transform weaponT;
-        
         [SerializeField] protected float aimingFOV = 45f;
         [SerializeField] protected float rateOfFire = 400f;
 
@@ -33,6 +32,7 @@ namespace Weapons
 
         private WeaponAnimator _weaponAnimator;
         private float _cooldown;
+
 
         public void PullMainTrigger()
         {
@@ -58,6 +58,7 @@ namespace Weapons
             OnReleaseSecondaryTrigger();
         }
         
+        // Triggers
         protected virtual void OnPullMainTrigger(){}
 
         protected virtual void OnReleaseMainTrigger(){}
@@ -80,7 +81,7 @@ namespace Weapons
 
         protected virtual void WasteAmmo(int amount=1)
         {
-            if(amount>remainingAmmo) throw new Exception("cannot waste more ammo than have");
+            if(amount>remainingAmmo) throw new Exception("cannot waste more ammo than u have");
             remainingAmmo -= amount;
         }
         
@@ -92,19 +93,6 @@ namespace Weapons
         }
 
 #if UNITY_EDITOR
-        protected virtual void OnDrawGizmosSelected()
-        {
-            if (muzzle != null)
-            {
-                var coneBase = muzzle.position + muzzle.forward * coneHeight;
-                Handles.DrawWireDisc(coneBase, muzzle.forward, coneRadius);
-                Handles.DrawLine(coneBase + muzzle.up * coneRadius, muzzle.position);
-                Handles.DrawLine(coneBase + muzzle.up * (-coneRadius), muzzle.position);
-                Handles.DrawLine(coneBase + muzzle.right * coneRadius, muzzle.position);
-                Handles.DrawLine(coneBase + muzzle.right * (-coneRadius), muzzle.position);
-            }
-        }
-
         private void OnDrawGizmos()
         {
             Gizmos.DrawRay(muzzle.position,muzzle.forward);
@@ -117,7 +105,6 @@ namespace Weapons
         {
             remainingAmmo = magazineCapacity;
             Positioning = GetComponentInChildren<WeaponPositioning>();
-            Positioning.weaponTransform = weaponT;
             _weaponAnimator = GetComponent<WeaponAnimator>();
         }
 

@@ -3,6 +3,14 @@ using UnityEngine;
 
 namespace Weapons
 {
+    
+    // TODO rework as flag
+    public enum WeaponPositioningRestrictions
+    {
+        None,
+        ForceLower,
+        CantAim
+    }
     public class WeaponPositioning : MonoBehaviour
     {
         [SerializeField] private Transform shoulderPos;
@@ -14,7 +22,7 @@ namespace Weapons
         [SerializeField] private float shakingDegrees;
         [SerializeField] private float shakingSpeed;
 
-        [HideInInspector]public Transform weaponTransform;
+        [SerializeField]private Transform weaponTransform;
 
         public Animator Animator { get; private set; }
         public float ADSTime => aimDownSideTime;
@@ -22,30 +30,36 @@ namespace Weapons
         public enum State
         {
             Aiming,
-            Shoulder,
+            Up,
+            Down,
             Hidden,
             ChangingState
         }
 
-        public State CurrentState { get; private set; } = State.Shoulder;
-        private State _targetState= State.Shoulder;
-        
+        public State CurrentState { get; private set; } = State.Up;
+        private State _targetState= State.Up;
+
         private Transform GetStateTransform(State state)
         {
             switch (state)
             {
-                case State.Aiming:   return aimingPos;
-                case State.Hidden:   return runningPos;
-                case State.Shoulder: return shoulderPos;
+                case State.Aiming:
+                    return aimingPos;
+                
+                case State.Down:
+                case State.Hidden:
+                    return runningPos;
+                
+                case State.Up:
+                    return shoulderPos;
             }
 
             return null;
         }
-        
+
         private void OnEnable()
         {
             Animator = GetComponent<Animator>();
-            PositionWeapon(State.Shoulder);
         }
 
         public void RotateWeapon(Transform cameraT)
@@ -58,6 +72,7 @@ namespace Weapons
         
         public void PositionWeapon(State state, float requiredTIme = 0.2f)
         {
+            if (_targetState == state) return;
             _targetState = state;
 
             if (_positioningWeaponCoroutine != null)
@@ -77,6 +92,11 @@ namespace Weapons
 
         private IEnumerator PositioningWeapon(State state, float time)
         {
+            if (CurrentState == State.Hidden)
+            {
+                weaponTransform.gameObject.SetActive(true);
+            }
+
             CurrentState = State.ChangingState;
 
             weaponTransform.parent = GetStateTransform(state);
@@ -91,9 +111,16 @@ namespace Weapons
                 weaponTransform.localRotation = Quaternion.Lerp(startingRot, Quaternion.identity, t / time);
                 yield return null;
             }
-            
+
             CurrentState = state;
-            StartShakingWeapon();
+            if (CurrentState == State.Hidden)
+            {
+                weaponTransform.gameObject.SetActive(false);
+            }
+            else
+            {
+                StartShakingWeapon();
+            }
         }
 
         
@@ -102,9 +129,10 @@ namespace Weapons
 
         private void StartShakingWeapon()
         {
+            // BUG doesnt work
             var shakingDegreeMult = 1f;
             if (CurrentState == State.Aiming) shakingDegreeMult = 0.15f;
-            if (CurrentState == State.Hidden) shakingDegreeMult = 3f;
+            if (CurrentState == State.Down) shakingDegreeMult = 3f;
             _weaponShakingCoroutine =
                 StartCoroutine(WeaponShaking(shakingDegrees * shakingDegreeMult, shakingSpeed * shakingDegreeMult));
         }
