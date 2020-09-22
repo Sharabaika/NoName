@@ -22,6 +22,9 @@ namespace Weapons
         [SerializeField] protected int magazineCapacity = 25;
         protected int remainingAmmo;
 
+        [SerializeField] protected float ReloadingTime = 1f;
+        [SerializeField] protected float TacticalReloadingTime = 1f;
+
         [SerializeField] protected ProjectileData projectileData;
 
         public float AimingFov => aimingFOV;
@@ -67,16 +70,55 @@ namespace Weapons
 
         protected virtual void OnReleaseSecondaryTrigger(){}
 
-
-        public virtual void Reload()
+        // Reloading
+        protected virtual bool IsTacticalReload()
         {
-            _weaponAnimator.Reload(remainingAmmo>0);
-            remainingAmmo = magazineCapacity;
+            return remainingAmmo > 0;
         }
 
+        protected virtual float GetTimeToReload()
+        {
+            return IsTacticalReload() ? TacticalReloadingTime : ReloadingTime;
+        }
+
+        protected virtual bool CanReload()
+        {
+            return remainingAmmo < magazineCapacity;
+        }
+
+        protected bool _isReloading = false;
+        private Coroutine _reloadingCoroutine;
+        protected virtual IEnumerator Reloading()
+        {
+            _isReloading = true;
+            _weaponAnimator.Reload(IsTacticalReload());
+            yield return new WaitForSeconds(GetTimeToReload());
+            remainingAmmo = magazineCapacity;
+            _isReloading = false;
+        }
+
+        public void Reload()
+        {
+            // TODO sync with animator
+            if (CanReload() && _isReloading == false)
+            {
+                _reloadingCoroutine = StartCoroutine(Reloading());
+            }
+        }
+
+        public void InterruptReloading()
+        {
+            _isReloading = false;
+            if(_reloadingCoroutine!=null)
+                StopCoroutine(_reloadingCoroutine);
+            _weaponAnimator.InterruptReloading();
+        }
+
+        
+        // Shooting
         protected virtual bool CanShoot()
         {
-            return remainingAmmo > 0 && RemainingCooldown < 0f;
+            return remainingAmmo > 0 && RemainingCooldown < 0f && _isReloading == false;
         }
 
         protected virtual void WasteAmmo(int amount=1)
@@ -87,6 +129,9 @@ namespace Weapons
         
         protected virtual void Shoot()
         {
+            if (!CanShoot()) return;
+
+
             lastFired = Time.time;
             ammo.ShootInCone(muzzle,projectileData,coneRadius,coneHeight);
             WasteAmmo();
