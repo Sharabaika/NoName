@@ -3,14 +3,13 @@ using UnityEngine;
 
 namespace Weapons
 {
-    // TODO rework animators for only one controller
     [RequireComponent(typeof(Animator))]
     public class WeaponAnimator : MonoBehaviour
     {
-        [SerializeField] private string idleString = "Iddle";
-        [SerializeField] private string switchMagString = "SwitchMag";
-        [SerializeField] private string pullTheBoltString = "PullTheBolt";
-        [SerializeField] private string isMainTriggerPulledString = "isMainTriggerPulled";
+        private readonly string idleString = "Idle";
+        private readonly string switchMagString = "SwitchMag";
+        private readonly string pullTheBoltString = "PullTheBolt";
+        private readonly string isMainTriggerPulledString = "isMainTriggerPulled";
 
         public bool isMainTriggerPulled
         {

@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1391537371606991254}
+  - component: {fileID: 289241131557092161}
   m_Layer: 0
   m_Name: aimingPos
   m_TagString: Untagged
@@ -30,6 +31,24 @@ Transform:
   m_Father: {fileID: 6254512036661476152}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &289241131557092161
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2630468083635432259}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09bd484daf3a458d90a0f89ad33dbd3a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rotatesWithCamera: 1
+  swayAmplitude: 1
+  swaySpeed: 0.1
+  recoilMaxAmplitude: 10
+  recoilControllability: 0.1
+  recoilIntensity: 0.05
 --- !u!1 &5231281236595431794
 GameObject:
   m_ObjectHideFlags: 0
@@ -39,6 +58,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2094197543489252308}
+  - component: {fileID: 2412988948375190748}
   m_Layer: 0
   m_Name: shoulder
   m_TagString: Untagged
@@ -61,6 +81,24 @@ Transform:
   m_Father: {fileID: 6254512036661476152}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2412988948375190748
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5231281236595431794}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09bd484daf3a458d90a0f89ad33dbd3a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rotatesWithCamera: 1
+  swayAmplitude: 1
+  swaySpeed: 0.1
+  recoilMaxAmplitude: 10
+  recoilControllability: 0.1
+  recoilIntensity: 0.05
 --- !u!1 &5397772764572191601
 GameObject:
   m_ObjectHideFlags: 0
@@ -111,7 +149,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5427236824383252821
 Transform:
   m_ObjectHideFlags: 0
@@ -239,6 +277,8 @@ MonoBehaviour:
   MagSwitchingTime: 2.8
   BoltActionTime: 0.4
   projectileData: {fileID: 11400000, guid: 830a7ca1d1fa71844a272feeaec9bb15, type: 2}
+  verticalRecoil: 10
+  horizontalRecoil: 5
 --- !u!95 &7342772929142352021
 Animator:
   serializedVersion: 3
@@ -270,7 +310,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 65c196bf29434063806a86f3f81eb7b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  idleString: Iddle
+  idleString: Idle
   switchMagString: SwitchMag
   pullTheBoltString: PullTheBolt
   isMainTriggerPulledString: isMainTriggerPulled
@@ -286,13 +326,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3de57798bea24a939740a1feae76cee5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shoulderPos: {fileID: 2094197543489252308}
-  aimingPos: {fileID: 1391537371606991254}
-  runningPos: {fileID: 7802524650237773314}
+  shoulderPos: {fileID: 2412988948375190748}
+  aimingPos: {fileID: 289241131557092161}
+  hiddenPos: {fileID: 0}
   aimDownSideTime: 0.2
-  shakingDegrees: 7
-  shakingSpeed: 1
-  weaponTransform: {fileID: 0}
+  shakingDegrees: 70
+  shakingSpeed: 5.5
+  weaponTransform: {fileID: 5427236824383252821}
 --- !u!114 &225318096831882975
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -799,6 +839,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7802524650237773314}
+  - component: {fileID: 4691787225157332199}
   m_Layer: 0
   m_Name: runningPos
   m_TagString: Untagged
@@ -820,3 +861,21 @@ Transform:
   m_Father: {fileID: 6254512036661476152}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 8.684, y: -67.375, z: -19.914}
+--- !u!114 &4691787225157332199
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8953419215917358565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09bd484daf3a458d90a0f89ad33dbd3a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rotatesWithCamera: 0
+  swayAmplitude: 1
+  swaySpeed: 0.1
+  recoilMaxAmplitude: 10
+  recoilControllability: 0.1
+  recoilIntensity: 0.05

@@ -39,7 +39,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: M1911 Pistol Positioning/shoulder/SM_Wep_American_Pistol_01/SM_Wep_American_Pistol_01_Trigger
+    path: Positioning/shoulder/SM_Wep_American_Pistol_01/SM_Wep_American_Pistol_01_Trigger
   m_ScaleCurves: []
   m_FloatCurves: []
   m_PPtrCurves: []
@@ -51,7 +51,7 @@ AnimationClip:
   m_ClipBindingConstant:
     genericBindings:
     - serializedVersion: 2
-      path: 3231113708
+      path: 2237966100
       attribute: 1
       script: {fileID: 0}
       typeID: 4
@@ -104,7 +104,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.x
-    path: M1911 Pistol Positioning/shoulder/SM_Wep_American_Pistol_01/SM_Wep_American_Pistol_01_Trigger
+    path: Positioning/shoulder/SM_Wep_American_Pistol_01/SM_Wep_American_Pistol_01_Trigger
     classID: 4
     script: {fileID: 0}
   - curve:
@@ -132,7 +132,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.y
-    path: M1911 Pistol Positioning/shoulder/SM_Wep_American_Pistol_01/SM_Wep_American_Pistol_01_Trigger
+    path: Positioning/shoulder/SM_Wep_American_Pistol_01/SM_Wep_American_Pistol_01_Trigger
     classID: 4
     script: {fileID: 0}
   - curve:
@@ -160,7 +160,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.z
-    path: M1911 Pistol Positioning/shoulder/SM_Wep_American_Pistol_01/SM_Wep_American_Pistol_01_Trigger
+    path: Positioning/shoulder/SM_Wep_American_Pistol_01/SM_Wep_American_Pistol_01_Trigger
     classID: 4
     script: {fileID: 0}
   m_EulerEditorCurves: []
