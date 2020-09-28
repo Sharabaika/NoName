@@ -1,10 +1,9 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using UnityEngine;
 
 namespace Weapons
 {
-    
-    // TODO rework as flag
     public enum WeaponPositioningRestrictions
     {
         None,
@@ -13,9 +12,11 @@ namespace Weapons
     }
     public class WeaponPositioning : MonoBehaviour
     {
-        [SerializeField] private Transform shoulderPos;
-        [SerializeField] private Transform aimingPos;
-        [SerializeField] private Transform runningPos;
+        // TODO rework with supPositions and add recoil
+
+        [SerializeField] private WeaponSubPosition shoulderPos;
+        [SerializeField] private WeaponSubPosition aimingPos;
+        [SerializeField] private WeaponSubPosition hiddenPos;
 
         [SerializeField] private float aimDownSideTime=0.2f;
 
@@ -23,83 +24,96 @@ namespace Weapons
         [SerializeField] private float shakingSpeed;
 
         [SerializeField]private Transform weaponTransform;
-
-        public Animator Animator { get; private set; }
         public float ADSTime => aimDownSideTime;
+        public WeaponSubPosition CurrentSubPos => _currentSubPos;
 
-        public enum State
+        public bool CanShoot
         {
-            Aiming,
-            Up,
-            Down,
-            Hidden,
-            ChangingState
-        }
+            get;
+            private set;
+        } = false;
 
-        public State CurrentState { get; private set; } = State.Up;
-        private State _targetState= State.Up;
-
-        private Transform GetStateTransform(State state)
+        private Transform _cameraTransform;
+        public Transform CameraTransform
         {
-            switch (state)
+            get => _cameraTransform;
+            set
             {
-                case State.Aiming:
-                    return aimingPos;
-                
-                case State.Down:
-                case State.Hidden:
-                    return runningPos;
-                
-                case State.Up:
-                    return shoulderPos;
+                _cameraTransform = value;
+                shoulderPos.CameraTransform = value;
+                aimingPos.CameraTransform = value;
+                hiddenPos.CameraTransform = value;
             }
-
-            return null;
         }
 
-        private void OnEnable()
+        private bool _isActive;
+        public bool isActive
         {
-            Animator = GetComponent<Animator>();
-        }
-
-        public void RotateWeapon(Transform cameraT)
-        {
-            var angle = aimingPos.localEulerAngles.x - cameraT.localEulerAngles.x;
-            var cameraPosition = cameraT.position;
-            aimingPos.RotateAround(cameraPosition,cameraT.right,-angle);
-            shoulderPos.RotateAround(cameraPosition,cameraT.right,-angle);
+            get => _isActive;
+            set
+            {
+                _isActive = value;
+                _currentSubPos.isActive = value;
+            }
         }
         
-        public void PositionWeapon(State state, float requiredTIme = 0.2f)
+        private WeaponSubPosition _currentSubPos;
+        private bool _isHidden = true;
+        
+        public void Aim()
         {
-            if (_targetState == state) return;
-            _targetState = state;
+            CanShoot = true;
+            PositionWeapon(aimingPos);
+        }
+
+        public void Up()
+        {
+            CanShoot = true;
+            PositionWeapon(shoulderPos);
+        }
+
+        public void Down()
+        {
+            CanShoot = false;
+            PositionWeapon(hiddenPos);
+        }
+
+        public void Hide()
+        {
+            CanShoot = false;
+            PositionWeapon(hiddenPos, .1f, true);
+        }
+
+        private void PositionWeapon(WeaponSubPosition targetPos, float requiredTIme = 0.2f, bool hide = false)
+        {
+            if (_currentSubPos == targetPos) return;
 
             if (_positioningWeaponCoroutine != null)
             {
                 StopCoroutine(_positioningWeaponCoroutine);
             }
 
-            if (_weaponShakingCoroutine != null)
-            {
-                StopCoroutine(_weaponShakingCoroutine);
-            }
-            
-            _positioningWeaponCoroutine = StartCoroutine(PositioningWeapon(state, requiredTIme));
+            _positioningWeaponCoroutine = StartCoroutine(PositioningWeapon(targetPos, requiredTIme, hide));
         }
 
         private Coroutine _positioningWeaponCoroutine;
+        
 
-        private IEnumerator PositioningWeapon(State state, float time)
+        private IEnumerator PositioningWeapon(WeaponSubPosition targetPos, float time, bool hideAfter = false)
         {
-            if (CurrentState == State.Hidden)
+            
+            if (_isHidden && !hideAfter)
             {
                 weaponTransform.gameObject.SetActive(true);
+                _isHidden = false;
             }
-
-            CurrentState = State.ChangingState;
-
-            weaponTransform.parent = GetStateTransform(state);
+            
+            weaponTransform.parent = targetPos.transform;
+            
+            _currentSubPos.isActive = false;
+            _currentSubPos = targetPos;
+            _currentSubPos.isActive = true;
+            
             var startingPos = weaponTransform.localPosition;
             var startingRot = weaponTransform.localRotation;
 
@@ -112,53 +126,17 @@ namespace Weapons
                 yield return null;
             }
 
-            CurrentState = state;
-            if (CurrentState == State.Hidden)
+            if (hideAfter && !_isHidden)
             {
                 weaponTransform.gameObject.SetActive(false);
-            }
-            else
-            {
-                StartShakingWeapon();
+                _isHidden = true;
             }
         }
 
-        
-        private Coroutine _weaponShakingCoroutine;
-        private Coroutine _weaponShakeToCertainRotationCoroutine;
-
-        private void StartShakingWeapon()
+        private void OnEnable()
         {
-            // BUG doesnt work
-            var shakingDegreeMult = 1f;
-            if (CurrentState == State.Aiming) shakingDegreeMult = 0.15f;
-            if (CurrentState == State.Down) shakingDegreeMult = 3f;
-            _weaponShakingCoroutine =
-                StartCoroutine(WeaponShaking(shakingDegrees * shakingDegreeMult, shakingSpeed * shakingDegreeMult));
-        }
-
-        private IEnumerator WeaponShaking(float deltaDegrees, float speed)
-        {
-            while (CurrentState != State.ChangingState)
-            {
-                float x = Random.Range(-deltaDegrees, deltaDegrees);
-                float y = Random.Range(-deltaDegrees, deltaDegrees);
-                yield return StartCoroutine(RotateWeaponRelativeToStartingRot(x, y, speed));
-            }
-        }
-        
-        private IEnumerator RotateWeaponRelativeToStartingRot(float x,float y, float speed)
-        {
-            Quaternion xRot = Quaternion.AngleAxis(x , Vector3.right);
-            Quaternion yRot = Quaternion.AngleAxis(y , Vector3.up);
-            Quaternion targetRotation = Quaternion.identity * xRot * yRot;
-
-            while (weaponTransform.localRotation != targetRotation && CurrentState!= State.ChangingState)
-            {
-                weaponTransform.localRotation = Quaternion.RotateTowards(weaponTransform.localRotation, targetRotation,
-                    Time.deltaTime * speed);
-                yield return null;
-            }
+            // TODO add hidden pos
+            _currentSubPos = hiddenPos;
         }
     }
 }

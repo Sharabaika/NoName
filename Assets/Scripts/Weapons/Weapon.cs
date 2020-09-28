@@ -3,6 +3,7 @@ using System.Collections;
 using Projectiles;
 using UnityEditor;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Weapons
 {
@@ -27,11 +28,13 @@ namespace Weapons
 
         [SerializeField] protected ProjectileData projectileData;
 
-        
+        [SerializeField] protected float verticalRecoil = 10f;
+        [SerializeField] protected float horizontalRecoil = 5f;
+
         // Delegates
-        public Action onShoot;
-        public Action onMagSwitch;
-        public Action onBoltAction;
+        public event Action onShoot;
+        public event Action onMagSwitch;
+        public event Action onBoltAction;
         
         public float AimingFov => aimingFOV;
         public WeaponPositioning Positioning { get; private set; }
@@ -136,7 +139,8 @@ namespace Weapons
         // Shooting
         protected virtual bool CanShoot()
         {
-            return remainingAmmo > 0 && RemainingCooldown < 0f && !isReloading && isBoltPulled;
+            // TODO lmao what is it
+            return remainingAmmo > 0 && RemainingCooldown < 0f && !isReloading && isBoltPulled && Positioning.CanShoot;
         }
 
         protected virtual void WasteAmmo(int amount=1)
@@ -144,15 +148,24 @@ namespace Weapons
             if(amount>remainingAmmo) throw new Exception("cannot waste more ammo than u have");
             remainingAmmo -= amount;
         }
+
+
+        protected virtual Vector3 GetRecoil()
+        {
+            Vector3 p = Random.insideUnitCircle;
+            p.x *= horizontalRecoil;
+            p.y *= verticalRecoil;
+            return p;
+        }
         
         protected virtual void Shoot()
         {
             if (!CanShoot()) return;
 
-
             lastFired = Time.time;
-            ammo.ShootInCone(muzzle, projectileData, coneRadius, coneHeight);
+            ammo.ShootStraight(muzzle, projectileData);
             onShoot?.Invoke();
+            Positioning.CurrentSubPos.AddRecoil(GetRecoil());
             WasteAmmo();
         }
 

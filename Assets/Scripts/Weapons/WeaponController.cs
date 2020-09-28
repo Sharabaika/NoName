@@ -24,11 +24,11 @@ namespace Weapons
             set
             {
                 _canReload = value;
-                if(value == false) _activeWeapon.InterruptReloading();
+                if(value == false && _activeWeapon!=null) _activeWeapon.InterruptReloading();
             }
         }
         private bool _canReload = true;
-
+        
         public WeaponPositioningRestrictions PositioningRestrictions
         {
             get => _positioningRestrictions;
@@ -61,9 +61,8 @@ namespace Weapons
 
             if (_activeWeapon != null)
             {
-                _activeWeapon.Positioning.RotateWeapon(_cameraT);
+                // _activeWeapon.Positioning.RotateWeapon(_cameraT);
                 
-                // TODO remove release main trigger etc
 
                 // Shooting
                 if (Input.GetKeyDown(KeyCode.Mouse0))
@@ -105,6 +104,7 @@ namespace Weapons
             _input = GetComponent<PlayerInput>();
         }
 
+        // TODO add activate weapon etc
         private void Start()
         {
             var movement = GetComponent<PlayerMovement>();
@@ -116,11 +116,14 @@ namespace Weapons
             if (mainWeapon != null)
             {
                 mainWeapon.gameObject.SetActive(true);
+                mainWeapon.Positioning.CameraTransform = _cameraT;
             }
             if (secondaryWeapon != null)
             {
                 secondaryWeapon.gameObject.SetActive(true);
-                secondaryWeapon.Positioning.PositionWeapon(WeaponPositioning.State.Hidden);
+                secondaryWeapon.Positioning.Hide();
+                secondaryWeapon.Positioning.CameraTransform = _cameraT;
+                secondaryWeapon.Positioning.isActive = false;
             }
             ChangeWeapon(mainWeapon);
         }
@@ -148,18 +151,18 @@ namespace Weapons
             
             if (_input.isAimKey && _positioningRestrictions==WeaponPositioningRestrictions.None)
             {
-                Positioning.PositionWeapon(WeaponPositioning.State.Aiming);
+                Positioning.Aim();
                 _FPScamera.SwitchToAimingFOV(_activeWeapon.AimingFov,_activeWeapon.Positioning.ADSTime);
                 return;
             }
             
             if(_input.isAimKey == false && _positioningRestrictions!=WeaponPositioningRestrictions.ForceLower)
             {
-                Positioning.PositionWeapon(WeaponPositioning.State.Up);
+                Positioning.Up();
             }
             else
             {
-                Positioning.PositionWeapon(WeaponPositioning.State.Down);
+                Positioning.Down();
             }
             _FPScamera.SwitchToNormalFOV();
         }
@@ -171,7 +174,7 @@ namespace Weapons
 
             if (_activeWeapon != null)
             {
-                Positioning.PositionWeapon(WeaponPositioning.State.Hidden);
+                Positioning.Hide();
                 _activeWeapon.InterruptReloading();
             }
 
